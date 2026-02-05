@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafeTrip - Offline Adventure Mode</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Space+Grotesk:wght@400;600;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #1a1c2e 0%, #2d1b69 35%, #1e3c72 100%);
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+            color: #fff;
+        }
+
+        /* Animated Background Elements */
+        .floating-elements {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .floating-icon {
+            position: absolute;
+            opacity: 0.1;
+            animation: float 8s ease-in-out infinite;
+            font-size: 2rem;
+            color: #64ffda;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            25% { transform: translateY(-20px) rotate(90deg); }
+            50% { transform: translateY(-40px) rotate(180deg); }
+            75% { transform: translateY(-20px) rotate(270deg); }
+        }
+
+        /* Signal Wave Animation */
+        .signal-waves {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1;
+        }
+
+        .signal-ring {
+            position: absolute;
+            border: 2px solid rgba(100, 255, 218, 0.3);
+            border-radius: 50%;
+            animation: signal-pulse 3s ease-out infinite;
+        }
+
+        .signal-ring:nth-child(1) {
+            width: 100px;
+            height: 100px;
+            margin: -50px 0 0 -50px;
+        }
+
+        .signal-ring:nth-child(2) {
+            width: 200px;
+            height: 200px;
+            margin: -100px 0 0 -100px;
+            animation-delay: 0.5s;
+        }
+
+        .signal-ring:nth-child(3) {
+            width: 300px;
+            height: 300px;
+            margin: -150px 0 0 -150px;
+            animation-delay: 1s;
+        }
+
+        @keyframes signal-pulse {
+            0% {
+                transform: scale(0);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 0;
+            }
+        }
+
+        /* Main Container */
+        .main-container {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .adventure-interface {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 3rem;
+            text-align: center;
+            max-width: 480px;
+            width: 100%;
+            position: relative;
+            box-shadow: 
+                0 25px 50px rgba(0, 0, 0, 0.3),
+                0 0 0 1px rgba(255, 255, 255, 0.05);
+        }
+
+        .adventure-interface::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(100, 255, 218, 0.5), transparent);
+        }
+
+        .app-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 2rem;
+        }
+
+        .logo-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #64ffda, #1de9b6);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            animation: logo-glow 3s ease-in-out infinite;
+        }
+
+        @keyframes logo-glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(100, 255, 218, 0.3); }
+            50% { box-shadow: 0 0 30px rgba(100, 255, 218, 0.6); }
+        }
+
+        .logo-text {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: #fff;
+            background: linear-gradient(135deg, #64ffda, #1de9b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.95rem;
+            margin-bottom: 2.5rem;
+            font-weight: 400;
+        }
+
+        .question-phase {
+            opacity: 1;
+            transform: translateY(0);
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .question-phase.hidden {
+            opacity: 0;
+            transform: translateY(-30px);
+            pointer-events: none;
+        }
+
+        .offline-phase {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) translateY(30px);
+            width: calc(100% - 6rem);
+        }
+
+        .offline-phase.visible {
+            opacity: 1;
+            transform: translate(-50%, -50%) translateY(0);
+        }
+
+        .signal-status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 1.5rem;
+            padding: 12px 20px;
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            border-radius: 12px;
+        }
+
+        .signal-icon {
+            font-size: 1.2rem;
+            color: #ffc107;
+            animation: signal-warning 2s ease-in-out infinite;
+        }
+
+        @keyframes signal-warning {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .signal-text {
+            color: #ffc107;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .main-question {
+            font-size: 1.3rem;
+            color: #fff;
+            margin: 2rem 0;
+            font-weight: 600;
+            line-height: 1.5;
+        }
+
+        .question-subtitle {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 1rem;
+            margin-bottom: 2.5rem;
+            font-weight: 400;
+            line-height: 1.6;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+
+        .action-btn {
+            padding: 16px 32px;
+            border: 2px solid;
+            border-radius: 16px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .action-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.6s;
+        }
+
+        .action-btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-offline {
+            background: linear-gradient(135deg, rgba(100, 255, 218, 0.1), rgba(29, 233, 182, 0.1));
+            border-color: #64ffda;
+            color: #64ffda;
+        }
+
+        .btn-offline:hover {
+            background: linear-gradient(135deg, rgba(100, 255, 218, 0.2), rgba(29, 233, 182, 0.2));
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(100, 255, 218, 0.3);
+        }
+
+        .btn-stay {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.3);
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .btn-stay:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.5);
+            color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(255, 255, 255, 0.1);
+        }
+
+        .offline-status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 2rem;
+            padding: 16px 24px;
+            background: linear-gradient(135deg, rgba(76, 175, 80, 0.1), rgba(139, 195, 74, 0.1));
+            border: 1px solid rgba(76, 175, 80, 0.3);
+            border-radius: 16px;
+        }
+
+        .offline-icon {
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, #4caf50, #8bc34a);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            animation: success-pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes success-pulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 10px rgba(76, 175, 80, 0.3); }
+            50% { transform: scale(1.1); box-shadow: 0 0 20px rgba(76, 175, 80, 0.6); }
+        }
+
+        .status-title {
+            font-size: 1.4rem;
+            color: #4caf50;
+            font-weight: 700;
+        }
+
+        .adventure-loading {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            margin: 2rem 0;
+        }
+
+        .loading-dot {
+            width: 8px;
+            height: 8px;
+            background: linear-gradient(135deg, #64ffda, #1de9b6);
+            border-radius: 50%;
+            animation: adventure-loading 1.8s ease-in-out infinite;
+        }
+
+        .loading-dot:nth-child(1) { animation-delay: 0s; }
+        .loading-dot:nth-child(2) { animation-delay: 0.2s; }
+        .loading-dot:nth-child(3) { animation-delay: 0.4s; }
+        .loading-dot:nth-child(4) { animation-delay: 0.6s; }
+
+        @keyframes adventure-loading {
+            0%, 80%, 100% { 
+                transform: scale(1); 
+                opacity: 0.5; 
+            }
+            40% { 
+                transform: scale(1.3); 
+                opacity: 1; 
+            }
+        }
+
+        .loading-text {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1rem;
+            margin: 1.5rem 0;
+            font-weight: 400;
+            line-height: 1.6;
+        }
+
+        .continue-btn {
+            background: linear-gradient(135deg, #64ffda, #1de9b6);
+            border: none;
+            color: #1a1c2e;
+            padding: 18px 40px;
+            border-radius: 16px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: 'Inter', sans-serif;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .continue-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px rgba(100, 255, 218, 0.4);
+        }
+
+        .continue-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.6s;
+        }
+
+        .continue-btn:hover::before {
+            left: 100%;
+        }
+
+        .interface-glitch {
+            animation: interface-glitch 0.4s ease-in-out;
+        }
+
+        @keyframes interface-glitch {
+            0%, 100% { transform: translate(0) scale(1); }
+            12.5% { transform: translate(-1px, 1px) scale(1.01); }
+            25% { transform: translate(-1px, -1px) scale(0.99); }
+            37.5% { transform: translate(1px, 1px) scale(1.01); }
+            50% { transform: translate(1px, -1px) scale(0.99); }
+            62.5% { transform: translate(-1px, 1px) scale(1.01); }
+            75% { transform: translate(-1px, -1px) scale(0.99); }
+            87.5% { transform: translate(1px, 1px) scale(1.01); }
+        }
+
+        .glitch-text {
+            position: relative;
+            display: inline-block;
+        }
+
+        .glitch-text::before,
+        .glitch-text::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .glitch-text::before {
+            animation: glitch-anim-1 0.5s infinite linear alternate-reverse;
+            color: #ff6b6b;
+            z-index: -1;
+        }
+
+        .glitch-text::after {
+            animation: glitch-anim-2 0.5s infinite linear alternate-reverse;
+            color: #4ecdc4;
+            z-index: -2;
+        }
+
+        @keyframes glitch-anim-1 {
+            0%, 14%, 15%, 49%, 50%, 99%, 100% { transform: translate(0); }
+            1%, 13% { transform: translate(-1px, 0); }
+            16%, 48% { transform: translate(1px, 0); }
+            51%, 98% { transform: translate(0, 1px); }
+        }
+
+        @keyframes glitch-anim-2 {
+            0%, 20%, 21%, 62%, 63%, 99%, 100% { transform: translate(0); }
+            1%, 19% { transform: translate(1px, 0); }
+            22%, 61% { transform: translate(0, -1px); }
+            64%, 98% { transform: translate(-1px, 0); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 480px) {
+            .adventure-interface {
+                padding: 2rem;
+                margin: 1rem;
+            }
+            
+            .logo-text {
+                font-size: 1.8rem;
+            }
+            
+            .main-question {
+                font-size: 1.1rem;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .action-btn {
+                width: 100%;
+                padding: 16px 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Floating Tourism Elements -->
+    <div class="floating-elements">
+        <div class="floating-icon" style="top: 10%; left: 10%; animation-delay: 0s;">🗺️</div>
+        <div class="floating-icon" style="top: 20%; right: 15%; animation-delay: 1s;">📍</div>
+        <div class="floating-icon" style="top: 60%; left: 5%; animation-delay: 2s;">🧭</div>
+        <div class="floating-icon" style="bottom: 30%; right: 10%; animation-delay: 3s;">⛰️</div>
+        <div class="floating-icon" style="bottom: 15%; left: 20%; animation-delay: 4s;">🏕️</div>
+        <div class="floating-icon" style="top: 40%; right: 25%; animation-delay: 5s;">📱</div>
+    </div>
+    
+    <!-- Signal Waves -->
+    <div class="signal-waves">
+        <div class="signal-ring"></div>
+        <div class="signal-ring"></div>
+        <div class="signal-ring"></div>
+    </div>
+    
+    <div class="main-container">
+        <div class="adventure-interface">
+            <div class="app-logo">
+                <div class="logo-icon">🛡️</div>
+                <div class="logo-text">SafeTrip</div>
+            </div>
+            <div class="subtitle">Your Travel Safety Companion</div>
+            
+            <div id="questionPhase" class="question-phase">
+                <div class="signal-status">
+                    <div class="signal-icon">📶</div>
+                    <div class="signal-text">Weak Signal Detected</div>
+                </div>
+                
+                <div class="main-question">
+                    Ready to explore off-grid?
+                </div>
+                <div class="question-subtitle">
+                    We'll download your maps, emergency contacts, and safety info for areas without signal coverage.
+                </div>
+                
+                <div class="action-buttons">
+                    <button class="action-btn btn-offline" onclick="activateOfflineMode()">
+                        Go Offline Ready
+                    </button>
+                    <button class="action-btn btn-stay" onclick="stayOnline()">
+                        Stay Online
+                    </button>
+                </div>
+            </div>
+
+            <div id="offlinePhase" class="offline-phase">
+                <div class="offline-status">
+                    <div class="offline-icon">✓</div>
+                    <div class="status-title glitch-text" data-text="Adventure Mode Active">
+                        Adventure Mode Active
+                    </div>
+                </div>
+                
+                <div class="adventure-loading">
+                    <div class="loading-dot"></div>
+                    <div class="loading-dot"></div>
+                    <div class="loading-dot"></div>
+                    <div class="loading-dot"></div>
+                </div>
+                
+                <div class="loading-text">
+                    📍 Caching local maps & points of interest<br>
+                    🚨 Setting up emergency protocols<br>
+                    🧭 Preparing offline navigation
+                </div>
+                
+                <button class="continue-btn" onclick="startAdventure()">
+                    Start Your Adventure.
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function activateOfflineMode() {
+            const questionPhase = document.getElementById('questionPhase');
+            const offlinePhase = document.getElementById('offlinePhase');
+            const adventureInterface = document.querySelector('.adventure-interface');
+            
+            // Add glitch effect
+            adventureInterface.classList.add('interface-glitch');
+            
+            // Hide question phase
+            questionPhase.classList.add('hidden');
+            
+            setTimeout(() => {
+                // Show offline phase
+                offlinePhase.classList.add('visible');
+            }, 600);
+            
+            // Remove glitch effect
+            setTimeout(() => {
+                adventureInterface.classList.remove('interface-glitch');
+            }, 400);
+        }
+
+        function stayOnline() {
+            const adventureInterface = document.querySelector('.adventure-interface');
+            adventureInterface.classList.add('interface-glitch');
+            
+            setTimeout(() => {
+                alert('You can activate offline mode anytime from your travel settings when you need it!');
+                adventureInterface.classList.remove('interface-glitch');
+            }, 400);
+        }
+
+        function startAdventure() {
+          
+            document.body.classList.add('interface-glitch');
+            
+            setTimeout(() => {
+               window.location.href = 'triallll.html';
+
+            }, 600);
+        }
+
+      
+        function animateFloatingElements() {
+            const elements = document.querySelectorAll('.floating-icon');
+            elements.forEach((el, index) => {
+                setTimeout(() => {
+                    el.style.animationDuration = (Math.random() * 4 + 6) + 's';
+                }, index * 1000);
+            });
+        }
+
+      
+        window.addEventListener('load', () => {
+            animateFloatingElements();
+            
+            
+            setInterval(() => {
+                const waves = document.querySelector('.signal-waves');
+                waves.style.animation = 'none';
+                waves.offsetHeight; // Trigger reflow
+                waves.style.animation = null;
+            }, 8000);
+        });
+    </script>
+</body>
+</html>

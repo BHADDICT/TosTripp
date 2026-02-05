@@ -1,0 +1,1574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#667eea">
+    <meta name="description" content="Premium offline travel companion for Cambodia">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Tourism Companion Pro</title>
+    <link rel="manifest" href="manifest.json">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --primary: #667eea;
+            --secondary: #764ba2;
+            --accent: #f093fb;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --glass: rgba(255, 255, 255, 0.15);
+            --glass-border: rgba(255, 255, 255, 0.2);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 50%, var(--accent) 100%);
+            min-height: 100vh;
+            color: #1f2937;
+            overflow-x: hidden;
+            padding-bottom: 80px;
+        }
+
+        /* Animated Background */
+        .background-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .floating-shape {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            animation: float 20s infinite ease-in-out;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            25% { transform: translate(50px, -50px) rotate(90deg); }
+            50% { transform: translate(0, -100px) rotate(180deg); }
+            75% { transform: translate(-50px, -50px) rotate(270deg); }
+        }
+
+        /* PWA Install Banner */
+        .install-prompt {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 16px 24px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            gap: 16px;
+            max-width: 90%;
+            animation: slideDown 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        @keyframes slideDown {
+            from { transform: translateX(-50%) translateY(-100px); opacity: 0; }
+            to { transform: translateX(-50%) translateY(0); opacity: 1; }
+        }
+
+        .install-prompt-icon {
+            font-size: 32px;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .install-prompt button {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .install-prompt button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .install-prompt .close {
+            background: #f3f4f6;
+            color: #6b7280;
+            padding: 8px 16px;
+        }
+
+        /* Status Bar */
+        .status-bar {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 8px;
+            z-index: 9999;
+        }
+
+        .status-badge {
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .status-badge.online {
+            background: linear-gradient(135deg, var(--success), #059669);
+        }
+
+        .status-badge.offline {
+            background: linear-gradient(135deg, var(--warning), #d97706);
+        }
+
+        .pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 24px;
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            padding: 32px 24px;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transform: rotate(45deg);
+            animation: shine 3s infinite;
+        }
+
+        @keyframes shine {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .header h1 {
+            color: white;
+            font-size: clamp(2rem, 5vw, 3rem);
+            font-weight: 800;
+            margin-bottom: 8px;
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .header .subtitle {
+            color: rgba(255, 255, 255, 0.95);
+            font-size: clamp(1rem, 2vw, 1.2rem);
+            font-weight: 400;
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        .quick-action-btn {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 16px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            box-shadow: 0 4px 20px rgba(238, 90, 82, 0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .quick-action-btn:active {
+            transform: scale(0.95);
+        }
+
+        .quick-action-btn:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px rgba(238, 90, 82, 0.5);
+        }
+
+        .quick-action-btn .icon {
+            font-size: 28px;
+        }
+
+        /* Info Card */
+        .info-card {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            padding: 20px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .location-display {
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .location-display .icon {
+            font-size: 24px;
+            animation: bounce 2s infinite;
+        }
+
+        .coordinates {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 16px;
+            border-radius: 12px;
+            font-family: 'Courier New', monospace;
+            color: rgba(255, 255, 255, 0.95);
+            font-size: 15px;
+            line-height: 1.8;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            padding: 8px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            gap: 6px;
+            scrollbar-width: none;
+        }
+
+        .tabs::-webkit-scrollbar {
+            display: none;
+        }
+
+        .tab-btn {
+            flex: 1;
+            min-width: 100px;
+            padding: 14px 20px;
+            border: none;
+            background: transparent;
+            color: rgba(255, 255, 255, 0.7);
+            border-radius: 14px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+            transform: scale(1.05);
+        }
+
+        .tab-btn:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+            animation: fadeInUp 0.4s;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .section-title {
+            color: white;
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* Cards */
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .card-icon {
+            font-size: 40px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            width: 60px;
+            height: 60px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 4px;
+        }
+
+        .card-subtitle {
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .card-content {
+            color: #4b5563;
+            line-height: 1.6;
+        }
+
+        .card-info {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin: 12px 0;
+        }
+
+        .card-info-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #374151;
+            font-size: 15px;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .btn-secondary:hover {
+            background: #e5e7eb;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger), #dc2626);
+            color: white;
+            box-shadow: 0 4px 20px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success), #059669);
+            color: white;
+        }
+
+        /* Emergency Cards */
+        .emergency-card {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            border-radius: 20px;
+            padding: 28px;
+            margin-bottom: 16px;
+            box-shadow: 0 10px 40px rgba(239, 68, 68, 0.3);
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .emergency-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 15px 50px rgba(239, 68, 68, 0.4);
+        }
+
+        .emergency-number {
+            font-size: 48px;
+            font-weight: 800;
+            margin: 16px 0;
+            text-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .emergency-label {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .emergency-desc {
+            opacity: 0.9;
+            margin-bottom: 16px;
+        }
+
+        /* Phrase Cards */
+        .phrase-card {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            color: white;
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 16px;
+            box-shadow: 0 10px 40px rgba(139, 92, 246, 0.3);
+        }
+
+        .phrase-item {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .phrase-item:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateX(4px);
+        }
+
+        .phrase-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .phrase-english {
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 6px;
+        }
+
+        .phrase-khmer {
+            font-size: 15px;
+            opacity: 0.95;
+            font-style: italic;
+        }
+
+        /* Tool Inputs */
+        .tool-group {
+            background: white;
+            padding: 24px;
+            border-radius: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .tool-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .input-wrapper {
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .input-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #6b7280;
+            margin-bottom: 6px;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        .convert-icon {
+            font-size: 24px;
+            color: #9ca3af;
+        }
+
+        /* Time Display */
+        .time-display {
+            text-align: center;
+            padding: 32px;
+            background: linear-gradient(135deg, #06b6d4, #0891b2);
+            color: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(6, 182, 212, 0.3);
+        }
+
+        .time-value {
+            font-size: 56px;
+            font-weight: 800;
+            font-family: 'Courier New', monospace;
+            margin: 16px 0;
+            text-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .time-label {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        /* Emergency FAB */
+        .emergency-fab {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 28px;
+            cursor: pointer;
+            box-shadow: 0 8px 32px rgba(239, 68, 68, 0.5);
+            z-index: 9998;
+            transition: all 0.3s;
+            animation: pulse 2s infinite;
+        }
+
+        .emergency-fab:hover {
+            transform: scale(1.1) rotate(90deg);
+            box-shadow: 0 12px 40px rgba(239, 68, 68, 0.6);
+        }
+
+        .emergency-fab:active {
+            transform: scale(0.95);
+        }
+
+        /* Grid Layouts */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        /* Loading State */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 16px;
+            }
+            
+            .header {
+                padding: 24px 20px;
+            }
+
+            .status-bar {
+                top: 8px;
+                right: 8px;
+                flex-direction: column;
+                align-items: flex-end;
+            }
+
+            .install-prompt {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .quick-actions {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .emergency-fab {
+                bottom: 20px;
+                right: 20px;
+                width: 56px;
+                height: 56px;
+                font-size: 24px;
+            }
+
+            .time-value {
+                font-size: 40px;
+            }
+
+            .emergency-number {
+                font-size: 36px;
+            }
+        }
+
+        /* Print Styles */
+        @media print {
+            .emergency-fab,
+            .install-prompt,
+            .status-bar,
+            .quick-actions {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Background Animation -->
+    <div class="background-animation" id="bgAnimation"></div>
+
+    <!-- Install Prompt -->
+    <div class="install-prompt" id="installPrompt">
+        <div class="install-prompt-icon">📱</div>
+        <div>
+            <strong>Install Tourism Companion</strong>
+            <p style="font-size: 14px; color: #6b7280; margin-top: 4px;">Works offline • Fast • No storage</p>
+        </div>
+        <button onclick="installApp()">Install</button>
+        <button class="close" onclick="closeInstallPrompt()">Later</button>
+    </div>
+
+    <!-- Status Bar -->
+    <div class="status-bar">
+        <div class="status-badge" id="networkStatus">
+            <span class="pulse">●</span>
+            <span id="networkText">Checking...</span>
+        </div>
+        <div class="status-badge">
+            🔋 <span id="batteryLevel">--</span>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-content">
+                <h1>🌟 Tourism Companion Pro</h1>
+                <p class="subtitle">Your intelligent offline travel companion</p>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+            <button class="quick-action-btn" onclick="shareLocation()">
+                <span class="icon">📤</span>
+                <span>Share Location</span>
+            </button>
+            <button class="quick-action-btn" onclick="call('119')">
+                <span class="icon">🚑</span>
+                <span>Emergency</span>
+            </button>
+            <button class="quick-action-btn" onclick="sendEmergencySMS()">
+                <span class="icon">📲</span>
+                <span>SOS Alert</span>
+            </button>
+            <button class="quick-action-btn" onclick="showTab(1)">
+                <span class="icon">🗣️</span>
+                <span>Phrases</span>
+            </button>
+        </div>
+
+        <!-- Location Info -->
+        <div class="info-card">
+            <div class="location-display">
+                <span class="icon">📍</span>
+                <span id="locationName">Phnom Penh, Cambodia</span>
+            </div>
+            <div class="coordinates">
+                <div>Latitude: <strong><span id="lat">11.5564</span></strong></div>
+                <div>Longitude: <strong><span id="lng">104.9282</span></strong></div>
+                <div>Accuracy: <strong><span id="accuracy">±100m</span></strong></div>
+                <div>Updated: <strong><span id="lastUpdate">--</span></strong></div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="showTab(0)">🗺️ Map</button>
+            <button class="tab-btn" onclick="showTab(1)">🗣️ Phrases</button>
+            <button class="tab-btn" onclick="showTab(2)">🚨 Emergency</button>
+            <button class="tab-btn" onclick="showTab(3)">🏛️ Embassy</button>
+            <button class="tab-btn" onclick="showTab(4)">🛠️ Tools</button>
+        </div>
+
+        <!-- Tab 0: Map & Nearby -->
+        <div class="tab-content active" id="tab0">
+            <h2 class="section-title">🗺️ Nearby Places</h2>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">🏥</div>
+                    <div>
+                        <div class="card-title">Royal Phnom Penh Hospital</div>
+                        <div class="card-subtitle">⭐ 4.8 • 24/7 Emergency Services</div>
+                    </div>
+                </div>
+                <div class="card-info">
+                    <div class="card-info-item">📞 +855 23 991 000</div>
+                    <div class="card-info-item">📍 888 Monivong Blvd • 1.2 km away</div>
+                    <div class="card-info-item">⏱️ 15 min walk • 5 min drive</div>
+                </div>
+                <div class="card-actions">
+                    <button class="btn btn-danger" onclick="call('+85523991000')">📞 Call Emergency</button>
+                    <button class="btn btn-secondary" onclick="navigate('hospital')">🧭 Directions</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">🏨</div>
+                    <div>
+                        <div class="card-title">Grand Hotel Cambodia</div>
+                        <div class="card-subtitle">⭐ 4.2 • Luxury Hotel</div>
+                    </div>
+                </div>
+                <div class="card-info">
+                    <div class="card-info-item">📞 +855 23 999 000</div>
+                    <div class="card-info-item">📍 123 Sisowath Quay • 0.5 km away</div>
+                    <div class="card-info-item">⏱️ 6 min walk • 2 min drive</div>
+                </div>
+                <div class="card-actions">
+                    <button class="btn btn-primary" onclick="call('+85523999000')">📞 Call Hotel</button>
+                    <button class="btn btn-secondary" onclick="navigate('hotel')">🧭 Directions</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">🍽️</div>
+                    <div>
+                        <div class="card-title">Friends Restaurant</div>
+                        <div class="card-subtitle">⭐ 4.6 • International & Local</div>
+                    </div>
+                </div>
+                <div class="card-info">
+                    <div class="card-info-item">📞 +855 23 426 748</div>
+                    <div class="card-info-item">📍 215 Street 13 • 0.8 km away</div>
+                    <div class="card-info-item">⏱️ 10 min walk • 3 min drive</div>
+                </div>
+                <div class="card-actions">
+                    <button class="btn btn-primary" onclick="call('+85523426748')">📞 Reserve</button>
+                    <button class="btn btn-secondary" onclick="navigate('restaurant')">🧭 Directions</button>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon" style="font-size: 32px;">🏧</div>
+                        <div>
+                            <div class="card-title">ABA Bank ATM</div>
+                            <div class="card-subtitle">24/7 • International Cards</div>
+                        </div>
+                    </div>
+                    <div class="card-info">
+                        <div class="card-info-item">📍 0.3 km away</div>
+                        <div class="card-info-item">💵 $5 fee • $500 limit</div>
+                    </div>
+                    <div class="card-actions">
+                        <button class="btn btn-secondary" onclick="navigate('atm')">🧭 Directions</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon" style="font-size: 32px;">⛽</div>
+                        <div>
+                            <div class="card-title">Caltex Station</div>
+                            <div class="card-subtitle">Fuel • Convenience Store</div>
+                        </div>
+                    </div>
+                    <div class="card-info">
+                        <div class="card-info-item">📍 0.7 km away</div>
+                        <div class="card-info-item">💵 $1.20/L • Open 24/7</div>
+                    </div>
+                    <div class="card-actions">
+                        <button class="btn btn-secondary" onclick="navigate('gas')">🧭 Directions</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 1: Phrases -->
+        <div class="tab-content" id="tab1">
+            <h2 class="section-title">🗣️ Essential Khmer Phrases</h2>
+            
+            <div class="phrase-card">
+                <h3 style="font-size: 22px; margin-bottom: 16px; font-weight: 700;">👋 Greetings & Basics</h3>
+                <div class="phrase-item" onclick="speakPhrase('hello')">
+                    <div class="phrase-english">Hello / Good day</div>
+                    <div class="phrase-khmer">ជំរាបសួរ (Chomreab suor)</div>
+                </div>
+                <div class="phrase-item" onclick="speakPhrase('thank-you')">
+                    <div class="phrase-english">Thank you very much</div>
+                    <div class="phrase-khmer">អរគុណច្រើន (Orkun chran)</div>
+                </div>
+                <div class="phrase-item" onclick="speakPhrase('please')">
+                    <div class="phrase-english">Please help me</div>
+                    <div class="phrase-khmer">សូមជួយខ្ញុំផង (Som chuoy khnhom phong)</div>
+                </div>
+                <div class="phrase-item" onclick="speakPhrase('excuse-me')">
+                    <div class="phrase-english">Excuse me / Sorry</div>
+                    <div class="phrase-khmer">សុំទោស (Som tos)</div>
+                </div>
+                <div class="phrase-item" onclick="speakPhrase('goodbye')">
+                    <div class="phrase-english">Goodbye / See you later</div>
+                    <div class="phrase-khmer">លាហើយ (Lea haey)</div>
+                </div>
+            </div>
+
+            <div class="phrase-card">
+                <h3 style="font-size: 22px; margin-bottom: 16px; font-weight: 700;">🍽️ Food & Dining</h3>
+                <div class="phrase-item">
+                    <div class="phrase-english">How much does it cost?</div>
+                    <div class="phrase-khmer">តម្លៃប៉ុន្មាន? (Tomlai ponman?)</div>
+                </div>
+                <div class="phrase-item">
+                    <div class="phrase-english">I'm very hungry</div>
+                    <div class="phrase-khmer">ខ្ញុំឃ្លានណាស់ (Khnhom khlean nas)</div>
+                </div>
+                <div class="phrase-item">
+                    <div class="phrase-english">Can I see the menu?</div>
+                    <div class="phrase-khmer">ខ្ញុំអាចមើលម៉ឺនុយបានទេ? (Khnhom ach merl menu ban te?)</div>
+                </div>
+                <div class="phrase-item">
+                    <div class="phrase-english">Not too spicy, please</div>
+                    <div class="phrase-khmer">កុំឲ្យហាលពេកសូម (Kom aoy hal pek som)</div>
+                </div>
+                <div class="phrase-item">
+                    <div class="phrase-english">This is delicious!</div>
+                    <div class="phrase-khmer">នេះឆ្ងាញ់ណាស់! (Nih chhnganha nas!)</div>
+                </div>
+                <div class="phrase-item">
+                    <div class="phrase-english">Can I have the bill?</div>
+                    <div class="phrase-khmer">សូមគិតលុយផង (Som kit luy phong)</div>
+                </div>
+            </div>
+
+            <div class="phrase-card">
+                <h3 style="font-size: 22px; margin-bottom: 16px; font-weight: 700;">🚗 Transportation</h3>
+                <div class="phrase-item">
+                    <div class="phrase-english">Please take me to the airport</div>
+                    <div class="phrase-khmer">សូមយកខ្ញុំទៅអាកាសយានដ្ឋាន (Som yok khnhom tov akasayeandthan)</div>
+                </div>
+                <div class="phrase-item">
+                    <div class="phrase-english">Where is the bus station?</div>
+                    <div class="phrase-khmer">ស្ថានីយ៍ឡាននៅឯណា? (Sthani loan nov ei na?)</div>
+                </div>
+                <div class="phrase-item">
+                    <div class="phrase-english">Please stop here</div>
+                    <div class="phrase-khmer">សូមឈប់ត្រង់នេះ (Som chhob trong nih)</div>
+                </div>
+            </div>
+
+            <div class="phrase-card">
+                <h3 style="font-size: 22px; margin-bottom: 16px; font-weight: 700;">🚨 Emergency</h3>
+                <div class="phrase-item">
+                    <div class="phrase-english">Help me please!</div>
+                    <div class="phrase-khmer">សូមជួយខ្ញុំផង! (Som chuoy khnhom phong!)</div>
+                </div>
+                <div class="phrase-item">
+                    <div class="phrase-english">I need to see a doctor</div>
+                    <div class="phrase-khmer">ខ្ញុំត្រូវការជួបវេជ្ជបណ្ឌិត (Khnhom trov kar chuob vech bandit)</div>
+                </div>
+                <div class="phrase-item">
+                    <div class="phrase-english">Please call the police</div>
+                    <div class="phrase-khmer">សូមហៅប៉ូលីស (Som hav polis)</div>
+                </div>
+                <div class="phrase-item">
+                    <div class="phrase-english">I am lost</div>
+                    <div class="phrase-khmer">ខ្ញុំបាត់ផ្លូវ (Khnhom bat plov)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 2: Emergency -->
+        <div class="tab-content" id="tab2">
+            <h2 class="section-title">🚨 Emergency Services</h2>
+            
+            <!-- Emergency Contact Card -->
+            <div class="emergency-card" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">
+                <div style="font-size: 48px; margin-bottom: 12px;">📲</div>
+                <div class="emergency-label">Emergency SMS Contact</div>
+                <div style="font-size: 36px; font-weight: 800; margin: 16px 0;">0716145925</div>
+                <div class="emergency-desc">Sends your current location via SMS</div>
+                <button class="btn btn-primary" style="background: white; color: #8b5cf6; box-shadow: 0 4px 20px rgba(255,255,255,0.3);" onclick="sendEmergencySMS()">
+                    📲 Send SOS Location
+                </button>
+            </div>
+            
+            <div class="emergency-card">
+                <div style="font-size: 48px; margin-bottom: 12px;">👮</div>
+                <div class="emergency-label">Police Emergency</div>
+                <div class="emergency-number">117</div>
+                <div class="emergency-desc">Crimes • Theft • Security Issues</div>
+                <button class="btn btn-primary" style="background: white; color: #ef4444; box-shadow: 0 4px 20px rgba(255,255,255,0.3);" onclick="call('117')">
+                    📞 Call Now
+                </button>
+            </div>
+
+            <div class="emergency-card">
+                <div style="font-size: 48px; margin-bottom: 12px;">🚑</div>
+                <div class="emergency-label">Medical Emergency</div>
+                <div class="emergency-number">119</div>
+                <div class="emergency-desc">Medical Emergencies • Ambulance • Hospital</div>
+                <button class="btn btn-primary" style="background: white; color: #ef4444; box-shadow: 0 4px 20px rgba(255,255,255,0.3);" onclick="call('119')">
+                    📞 Call Now
+                </button>
+            </div>
+
+            <div class="emergency-card">
+                <div style="font-size: 48px; margin-bottom: 12px;">🔥</div>
+                <div class="emergency-label">Fire & Rescue</div>
+                <div class="emergency-number">118</div>
+                <div class="emergency-desc">Fire Emergencies • Rescue Operations</div>
+                <button class="btn btn-primary" style="background: white; color: #ef4444; box-shadow: 0 4px 20px rgba(255,255,255,0.3);" onclick="call('118')">
+                    📞 Call Now
+                </button>
+            </div>
+
+            <div class="emergency-card" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                <div style="font-size: 48px; margin-bottom: 12px;">🛡️</div>
+                <div class="emergency-label">Tourist Police</div>
+                <div style="font-size: 36px; font-weight: 800; margin: 16px 0;">012 942 484</div>
+                <div class="emergency-desc">English Speaking Officers • Tourist Support</div>
+                <button class="btn btn-primary" style="background: white; color: #f59e0b; box-shadow: 0 4px 20px rgba(255,255,255,0.3);" onclick="call('012942484')">
+                    📞 Call Now
+                </button>
+            </div>
+
+            <div class="card">
+                <h3 style="font-size: 20px; margin-bottom: 16px; font-weight: 700;">🏥 Important Medical Centers</h3>
+                <div class="card-info">
+                    <div class="card-info-item">
+                        <strong>Royal Phnom Penh Hospital</strong><br>
+                        📞 +855 23 991 000 • 📍 888 Monivong Blvd<br>
+                        ⏰ 24/7 Emergency Services
+                    </div>
+                    <div class="card-info-item" style="margin-top: 12px;">
+                        <strong>International SOS</strong><br>
+                        📞 +855 23 216 911 • 📍 161 Street 51<br>
+                        ⏰ 24/7 Medical Center
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 3: Embassy -->
+        <div class="tab-content" id="tab3">
+            <h2 class="section-title">🏛️ Embassy & Consulate</h2>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon" style="font-size: 36px;">🇺🇸</div>
+                    <div>
+                        <div class="card-title">United States Embassy</div>
+                        <div class="card-subtitle">Mon-Fri 8:00-17:00</div>
+                    </div>
+                </div>
+                <div class="card-info">
+                    <div class="card-info-item">📞 +855 23 728 000</div>
+                    <div class="card-info-item">🚨 Emergency: +855 23 728 118</div>
+                    <div class="card-info-item">📍 #1, Street 96, Sangkat Wat Phnom</div>
+                </div>
+                <div class="card-actions">
+                    <button class="btn btn-primary" onclick="call('+85523728000')">📞 Call</button>
+                    <button class="btn btn-secondary" onclick="navigate('us-embassy')">🧭 Directions</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon" style="font-size: 36px;">🇬🇧</div>
+                    <div>
+                        <div class="card-title">United Kingdom Embassy</div>
+                        <div class="card-subtitle">Mon-Thu 8:00-17:00, Fri 8:00-13:30</div>
+                    </div>
+                </div>
+                <div class="card-info">
+                    <div class="card-info-item">📞 +855 23 427 124</div>
+                    <div class="card-info-item">📍 27-29, Street 75, Sangkat Srah Chak</div>
+                </div>
+                <div class="card-actions">
+                    <button class="btn btn-primary" onclick="call('+85523427124')">📞 Call</button>
+                    <button class="btn btn-secondary" onclick="navigate('uk-embassy')">🧭 Directions</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon" style="font-size: 36px;">🇦🇺</div>
+                    <div>
+                        <div class="card-title">Australian Embassy</div>
+                        <div class="card-subtitle">Mon-Fri 8:00-17:00</div>
+                    </div>
+                </div>
+                <div class="card-info">
+                    <div class="card-info-item">📞 +855 23 213 470</div>
+                    <div class="card-info-item">📍 16, National Assembly St, Tonle Bassac</div>
+                </div>
+                <div class="card-actions">
+                    <button class="btn btn-primary" onclick="call('+85523213470')">📞 Call</button>
+                    <button class="btn btn-secondary" onclick="navigate('au-embassy')">🧭 Directions</button>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon" style="font-size: 28px;">🇫🇷</div>
+                        <div>
+                            <div class="card-title">French Embassy</div>
+                            <div class="card-subtitle">Mon-Fri 8:00-17:00</div>
+                        </div>
+                    </div>
+                    <div class="card-info">
+                        <div class="card-info-item">📞 +855 23 430 020</div>
+                        <div class="card-info-item">📍 1, Monivong Blvd</div>
+                    </div>
+                    <div class="card-actions">
+                        <button class="btn btn-primary" onclick="call('+85523430020')">📞 Call</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon" style="font-size: 28px;">🇩🇪</div>
+                        <div>
+                            <div class="card-title">German Embassy</div>
+                            <div class="card-subtitle">Mon-Thu 7:30-16:30</div>
+                        </div>
+                    </div>
+                    <div class="card-info">
+                        <div class="card-info-item">📞 +855 23 216 381</div>
+                        <div class="card-info-item">📍 76-78, Street 214</div>
+                    </div>
+                    <div class="card-actions">
+                        <button class="btn btn-primary" onclick="call('+85523216381')">📞 Call</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon" style="font-size: 28px;">🇯🇵</div>
+                        <div>
+                            <div class="card-title">Japanese Embassy</div>
+                            <div class="card-subtitle">Mon-Fri 8:30-17:15</div>
+                        </div>
+                    </div>
+                    <div class="card-info">
+                        <div class="card-info-item">📞 +855 23 217 161</div>
+                        <div class="card-info-item">📍 194, Norodom Blvd</div>
+                    </div>
+                    <div class="card-actions">
+                        <button class="btn btn-primary" onclick="call('+85523217161')">📞 Call</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon" style="font-size: 28px;">🇨🇦</div>
+                        <div>
+                            <div class="card-title">Canadian Embassy</div>
+                            <div class="card-subtitle">Mon-Fri 8:00-16:30</div>
+                        </div>
+                    </div>
+                    <div class="card-info">
+                        <div class="card-info-item">📞 +855 23 213 694</div>
+                        <div class="card-info-item">📍 9F Canadia Tower</div>
+                    </div>
+                    <div class="card-actions">
+                        <button class="btn btn-primary" onclick="call('+85523213694')">📞 Call</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 4: Tools -->
+        <div class="tab-content" id="tab4">
+            <h2 class="section-title">🛠️ Travel Tools</h2>
+            
+            <div class="tool-group">
+                <div class="tool-title">💱 Currency Converter</div>
+                <div class="input-group">
+                    <div class="input-wrapper">
+                        <label class="input-label">US Dollar (USD)</label>
+                        <input type="number" class="input-field" id="usdInput" placeholder="100" oninput="convertUSD()">
+                    </div>
+                    <div class="convert-icon">↔️</div>
+                    <div class="input-wrapper">
+                        <label class="input-label">Cambodian Riel (KHR)</label>
+                        <input type="number" class="input-field" id="khrInput" placeholder="410000" oninput="convertKHR()">
+                    </div>
+                </div>
+                <div style="color: #6b7280; font-size: 14px; margin-top: 8px;">
+                    💡 Current rate: 1 USD = 4,100 KHR
+                </div>
+            </div>
+
+            <div class="tool-group">
+                <div class="tool-title">🌡️ Temperature Converter</div>
+                <div class="input-group">
+                    <div class="input-wrapper">
+                        <label class="input-label">Celsius (°C)</label>
+                        <input type="number" class="input-field" id="celsiusInput" placeholder="28" oninput="convertCelsius()">
+                    </div>
+                    <div class="convert-icon">↔️</div>
+                    <div class="input-wrapper">
+                        <label class="input-label">Fahrenheit (°F)</label>
+                        <input type="number" class="input-field" id="fahrenheitInput" placeholder="82.4" oninput="convertFahrenheit()">
+                    </div>
+                </div>
+            </div>
+
+            <div class="tool-group">
+                <div class="tool-title">📏 Distance Converter</div>
+                <div class="input-group">
+                    <div class="input-wrapper">
+                        <label class="input-label">Kilometers (km)</label>
+                        <input type="number" class="input-field" id="kmInput" placeholder="5" oninput="convertKM()">
+                    </div>
+                    <div class="convert-icon">↔️</div>
+                    <div class="input-wrapper">
+                        <label class="input-label">Miles (mi)</label>
+                        <input type="number" class="input-field" id="milesInput" placeholder="3.1" oninput="convertMiles()">
+                    </div>
+                </div>
+            </div>
+
+            <div class="time-display">
+                <div class="time-label">⏰ Current Time in Phnom Penh</div>
+                <div class="time-value" id="currentTime">--:--:--</div>
+                <div class="time-label">Indochina Time (UTC+7)</div>
+            </div>
+
+            <div class="tool-group">
+                <div class="tool-title">🧮 Tip Calculator</div>
+                <div class="input-wrapper">
+                    <label class="input-label">Bill Amount (USD)</label>
+                    <input type="number" class="input-field" id="billAmount" placeholder="25.00" oninput="calculateTip()">
+                </div>
+                <div style="margin: 16px 0;">
+                    <label class="input-label">Tip Percentage</label>
+                    <div style="display: flex; gap: 8px; margin-top: 8px;">
+                        <button class="btn btn-secondary" style="flex: 1;" onclick="setTipPercent(10)">10%</button>
+                        <button class="btn btn-secondary" style="flex: 1;" onclick="setTipPercent(15)">15%</button>
+                        <button class="btn btn-secondary" style="flex: 1;" onclick="setTipPercent(18)">18%</button>
+                        <button class="btn btn-secondary" style="flex: 1;" onclick="setTipPercent(20)">20%</button>
+                    </div>
+                </div>
+                <div style="background: #f3f4f6; padding: 16px; border-radius: 12px; margin-top: 16px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span style="color: #6b7280;">Tip (<span id="tipPercent">15</span>%):</span>
+                        <strong style="color: #1f2937;">$<span id="tipAmount">0.00</span></strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 18px; font-weight: 700; color: #1f2937;">
+                        <span>Total:</span>
+                        <span>$<span id="totalAmount">0.00</span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Emergency FAB -->
+    <button class="emergency-fab" onclick="sendEmergencySMS()" title="Send Emergency SMS">
+        🚨
+    </button>
+
+    <script>
+        // Configuration
+        const EMERGENCY_CONTACT = '0716145925';
+        let currentPosition = {
+            latitude: 11.5564,
+            longitude: 104.9282,
+            accuracy: 100
+        };
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            initBackgroundAnimation();
+            updateTime();
+            setInterval(updateTime, 1000);
+            updateNetworkStatus();
+            updateBatteryStatus();
+            getLocation();
+            
+            // Update location every 30 seconds
+            setInterval(getLocation, 30000);
+        });
+
+        // Background animation
+        function initBackgroundAnimation() {
+            const container = document.getElementById('bgAnimation');
+            for (let i = 0; i < 10; i++) {
+                const shape = document.createElement('div');
+                shape.className = 'floating-shape';
+                shape.style.width = Math.random() * 100 + 50 + 'px';
+                shape.style.height = shape.style.width;
+                shape.style.left = Math.random() * 100 + '%';
+                shape.style.top = Math.random() * 100 + '%';
+                shape.style.animationDelay = Math.random() * 20 + 's';
+                shape.style.animationDuration = (Math.random() * 10 + 15) + 's';
+                container.appendChild(shape);
+            }
+        }
+
+        // Get current location
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        currentPosition = {
+                            latitude: position.coords.latitude,
+                            longitude: position.coords.longitude,
+                            accuracy: position.coords.accuracy
+                        };
+                        
+                        document.getElementById('lat').textContent = currentPosition.latitude.toFixed(6);
+                        document.getElementById('lng').textContent = currentPosition.longitude.toFixed(6);
+                        document.getElementById('accuracy').textContent = '±' + Math.round(currentPosition.accuracy) + 'm';
+                        document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+                    },
+                    function(error) {
+                        console.error('Location error:', error);
+                    },
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 0
+                    }
+                );
+            }
+        }
+
+        // Send Emergency SMS
+        function sendEmergencySMS() {
+            const message = `🚨 EMERGENCY ALERT 🚨\n\nI need help!\n\nMy location:\nLatitude: ${currentPosition.latitude.toFixed(6)}\nLongitude: ${currentPosition.longitude.toFixed(6)}\n\nGoogle Maps:\nhttps://maps.google.com/?q=${currentPosition.latitude},${currentPosition.longitude}\n\nTime: ${new Date().toLocaleString()}\nAccuracy: ±${Math.round(currentPosition.accuracy)}m`;
+            
+            const smsUrl = `sms:${EMERGENCY_CONTACT}?body=${encodeURIComponent(message)}`;
+            
+            if (confirm(`Send emergency SMS to ${EMERGENCY_CONTACT} with your current location?`)) {
+                window.location.href = smsUrl;
+            }
+        }
+
+        // Share location
+        function shareLocation() {
+            const shareText = `My location:\n${currentPosition.latitude.toFixed(6)}, ${currentPosition.longitude.toFixed(6)}\nhttps://maps.google.com/?q=${currentPosition.latitude},${currentPosition.longitude}`;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: 'My Location',
+                    text: shareText
+                }).catch(err => console.error('Share failed:', err));
+            } else {
+                const smsUrl = `sms:?body=${encodeURIComponent(shareText)}`;
+                window.location.href = smsUrl;
+            }
+        }
+
+        // Make phone call
+        function call(number) {
+            window.location.href = 'tel:' + number;
+        }
+
+        // Navigate
+        function navigate(place) {
+            const url = `https://maps.google.com/?q=${currentPosition.latitude},${currentPosition.longitude}`;
+            window.open(url, '_blank');
+        }
+
+        // Tab switching
+        function showTab(index) {
+            document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+                btn.classList.toggle('active', i === index);
+            });
+            document.querySelectorAll('.tab-content').forEach((content, i) => {
+                content.classList.toggle('active', i === index);
+            });
+        }
+
+        // Currency converter
+        function convertUSD() {
+            const usd = parseFloat(document.getElementById('usdInput').value) || 0;
+            document.getElementById('khrInput').value = (usd * 4100).toFixed(0);
+        }
+
+        function convertKHR() {
+            const khr = parseFloat(document.getElementById('khrInput').value) || 0;
+            document.getElementById('usdInput').value = (khr / 4100).toFixed(2);
+        }
+
+        // Temperature converter
+        function convertCelsius() {
+            const c = parseFloat(document.getElementById('celsiusInput').value);
+            if (!isNaN(c)) {
+                document.getElementById('fahrenheitInput').value = ((c * 9/5) + 32).toFixed(1);
+            }
+        }
+
+        function convertFahrenheit() {
+            const f = parseFloat(document.getElementById('fahrenheitInput').value);
+            if (!isNaN(f)) {
+                document.getElementById('celsiusInput').value = ((f - 32) * 5/9).toFixed(1);
+            }
+        }
+
+        // Distance converter
+        function convertKM() {
+            const km = parseFloat(document.getElementById('kmInput').value);
+            if (!isNaN(km)) {
+                document.getElementById('milesInput').value = (km * 0.621371).toFixed(2);
+            }
+        }
+
+        function convertMiles() {
+            const miles = parseFloat(document.getElementById('milesInput').value);
+            if (!isNaN(miles)) {
+                document.getElementById('kmInput').value = (miles / 0.621371).toFixed(2);
+            }
+        }
+
+        // Tip calculator
+        let tipPercent = 15;
+
+        function setTipPercent(percent) {
+            tipPercent = percent;
+            document.getElementById('tipPercent').textContent = percent;
+            calculateTip();
+        }
+
+        function calculateTip() {
+            const bill = parseFloat(document.getElementById('billAmount').value) || 0;
+            const tip = bill * (tipPercent / 100);
+            const total = bill + tip;
+            
+            document.getElementById('tipAmount').textContent = tip.toFixed(2);
+            document.getElementById('totalAmount').textContent = total.toFixed(2);
+        }
+
+        // Update time
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('en-US', {
+                timeZone: 'Asia/Phnom_Penh',
+                hour12: false
+            });
+            document.getElementById('currentTime').textContent = timeString;
+        }
+
+        // Update network status
+        function updateNetworkStatus() {
+            const statusBadge = document.getElementById('networkStatus');
+            const statusText = document.getElementById('networkText');
+            
+            if (navigator.onLine) {
+                statusBadge.classList.remove('offline');
+                statusBadge.classList.add('online');
+                statusText.textContent = 'Online';
+            } else {
+                statusBadge.classList.remove('online');
+                statusBadge.classList.add('offline');
+                statusText.textContent = 'Offline';
+            }
+        }
+
+        window.addEventListener('online', updateNetworkStatus);
+        window.addEventListener('offline', updateNetworkStatus);
+
+        // Update battery status
+        async function updateBatteryStatus() {
+            if ('getBattery' in navigator) {
+                try {
+                    const battery = await navigator.getBattery();
+                    const level = Math.round(battery.level * 100);
+                    document.getElementById('batteryLevel').textContent = level + '%';
+                    
+                    battery.addEventListener('levelchange', () => {
+                        const newLevel = Math.round(battery.level * 100);
+                        document.getElementById('batteryLevel').textContent = newLevel + '%';
+                    });
+                } catch (e) {
+                    document.getElementById('batteryLevel').textContent = 'N/A';
+                }
+            }
+        }
+
+        // PWA Install
+        let deferredPrompt;
+        
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('installPrompt').style.display = 'flex';
+        });
+
+        function installApp() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    deferredPrompt = null;
+                    document.getElementById('installPrompt').style.display = 'none';
+                });
+            }
+        }
+
+        function closeInstallPrompt() {
+            document.getElementById('installPrompt').style.display = 'none';
+        }
+
+        // Speak phrase (placeholder)
+        function speakPhrase(phrase) {
+            console.log('Speaking:', phrase);
+        }
+    </script>
+</body>
+</html>

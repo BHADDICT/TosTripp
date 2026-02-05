@@ -1,0 +1,2172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Get Inspired for your next trip</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 40px;
+            border-radius: 8px;
+        }
+
+        h1 {
+            font-size: 32px;
+            margin-bottom: 30px;
+            font-weight: 600;
+        }
+
+        /* Destination Cards */
+        .destinations {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 50px;
+        }
+
+        .destination-card {
+            position: relative;
+            height: 120px;
+            border-radius: 8px;
+            overflow: visible;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .destination-card:hover {
+            transform: scale(1.05);
+        }
+
+        .destination-card::after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 20px;
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 15px solid #0066cc;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .destination-card.active::after {
+            opacity: 1;
+        }
+
+        .destination-card .destination-content {
+            border-radius: 8px;
+            overflow: hidden;
+            height: 100%;
+        }
+
+        .destination-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .destination-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.5));
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 15px;
+        }
+
+        .destination-tag {
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+            width: fit-content;
+        }
+
+        .destination-name {
+            color: white;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        /* Must-See Experiences */
+        .experiences-section {
+            margin-bottom: 50px;
+        }
+
+        .experiences-section h2 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .experiences-description {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+
+        .experiences-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .experience-card {
+            position: relative;
+            height: 150px;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .experience-card:hover {
+            transform: scale(1.02);
+        }
+
+        .experience-card.locked {
+            cursor: not-allowed;
+            opacity: 0.8;
+        }
+
+        .experience-card.locked:hover {
+            transform: none;
+        }
+
+        .experience-card.large {
+            grid-column: span 1;
+            grid-row: span 2;
+            height: 315px;
+        }
+
+        .experience-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .experience-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+            padding: 20px;
+        }
+
+        .experience-name {
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background-color: white;
+            border-radius: 12px;
+            max-width: 900px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { 
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            to { 
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            position: sticky;
+            top: 0;
+            background: white;
+            padding: 25px 30px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .modal-header h2 {
+            font-size: 28px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 32px;
+            cursor: pointer;
+            color: #666;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background-color 0.2s;
+        }
+
+        .close-btn:hover {
+            background-color: #f0f0f0;
+        }
+
+        .modal-body {
+            padding: 30px;
+            padding-bottom: 100px;
+        }
+
+        .modal-actions {
+            position: sticky;
+            bottom: 0;
+            background: white;
+            display: flex;
+            gap: 15px;
+            padding: 20px 30px;
+            border-top: 1px solid #e0e0e0;
+            box-shadow: 0 -4px 12px rgba(0,0,0,0.1);
+            z-index: 10;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-book {
+            background-color: #0066cc;
+            color: white;
+        }
+
+        .btn-book:hover {
+            background-color: #0052a3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3);
+        }
+
+        .btn-message {
+            background-color: white;
+            color: #0066cc;
+            border: 2px solid #0066cc;
+        }
+
+        .btn-message:hover {
+            background-color: #f0f7ff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 102, 204, 0.2);
+        }
+
+        .modal-section {
+            margin-bottom: 35px;
+        }
+
+        .modal-section h3 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+            border-left: 4px solid #0066cc;
+            padding-left: 12px;
+        }
+
+        /* Booking Modal Styles */
+        .booking-modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .booking-modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .booking-modal-content {
+            background-color: white;
+            border-radius: 12px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            animation: slideUp 0.3s ease;
+        }
+
+        .booking-form {
+            padding: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #0066cc;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .payment-options {
+            display: grid;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .payment-option {
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .payment-option:hover {
+            border-color: #0066cc;
+            background-color: #f0f7ff;
+        }
+
+        .payment-option.selected {
+            border-color: #0066cc;
+            background-color: #f0f7ff;
+        }
+
+        .payment-option input[type="radio"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .payment-option-content {
+            flex: 1;
+        }
+
+        .payment-option-title {
+            font-weight: 600;
+            font-size: 15px;
+            margin-bottom: 4px;
+        }
+
+        .payment-option-desc {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .qr-section {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .qr-section.active {
+            display: block;
+        }
+
+        .qr-code {
+            width: 250px;
+            height: 250px;
+            margin: 20px auto;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .qr-code img {
+            width: 100%;
+            height: 100%;
+        }
+
+        .bank-info {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            text-align: left;
+        }
+
+        .bank-info p {
+            margin: 8px 0;
+            font-size: 14px;
+        }
+
+        .bank-info strong {
+            color: #0066cc;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .form-actions .btn {
+            flex: 1;
+        }
+
+        .btn-cancel {
+            background-color: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-cancel:hover {
+            background-color: #e0e0e0;
+        }
+
+        .btn-submit {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .btn-submit:hover {
+            background-color: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .photo-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .gallery-item {
+            position: relative;
+            height: 180px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .gallery-item:hover img {
+            transform: scale(1.1);
+        }
+/* ---------- BOOK NOW BUTTON ---------- */
+.bp-book-btn {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 10px 20px;
+    background-color: #ff6b6b; /* bright, attention-grabbing */
+    color: #fff;
+    font-weight: bold;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.2s;
+}
+
+.bp-book-btn:hover {
+    background-color: #ff4c4c;
+    transform: translateY(-2px);
+}
+
+/* ---------- BOOKING POPUP / MODAL ---------- */
+#bp-bookingPopup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5); /* semi-transparent overlay */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.bp-booking-box {
+    background: #fff;
+    padding: 25px 30px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    text-align: left;
+    position: relative;
+}
+
+.bp-booking-box h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 1.3em;
+    color: #333;
+}
+
+.bp-booking-box p {
+    margin: 5px 0;
+    font-size: 0.95em;
+}
+
+.bp-booking-box input[type="text"],
+.bp-booking-box input[type="email"],
+.bp-booking-box input[type="date"] {
+    width: 100%;
+    padding: 8px 10px;
+    margin: 8px 0;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    box-sizing: border-box;
+}
+
+.bp-booking-box button {
+    padding: 10px 20px;
+    margin-top: 10px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.bp-booking-box button[type="submit"] {
+    background-color: #28a745; /* green confirm */
+    color: #fff;
+    margin-right: 10px;
+}
+
+.bp-booking-box button[type="submit"]:hover {
+    background-color: #218838;
+}
+
+.bp-booking-box button[type="button"] {
+    background-color: #dc3545; /* red cancel */
+    color: #fff;
+}
+
+.bp-booking-box button[type="button"]:hover {
+    background-color: #c82333;
+}
+
+        .activities-list {
+            display: grid;
+            gap: 15px;
+        }
+
+        .activity-item {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.2s;
+        }
+
+        .activity-item:hover {
+            background-color: #e9ecef;
+        }
+
+        .activity-info {
+            flex: 1;
+        }
+
+        .activity-name {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .activity-description {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .activity-price {
+            font-size: 20px;
+            font-weight: 700;
+            color: #0066cc;
+            margin-left: 20px;
+            white-space: nowrap;
+        }
+
+        .food-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .food-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: box-shadow 0.3s ease;
+        }
+
+        .food-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .food-image {
+            height: 180px;
+            overflow: hidden;
+        }
+
+        .food-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .food-info {
+            padding: 15px;
+        }
+
+        .food-name {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .food-description {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .food-type-badge {
+            display: inline-block;
+            background-color: #28a745;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+            margin-top: 8px;
+        }
+
+        /* Hotels Section */
+        .hotels-section {
+            margin-bottom: 30px;
+        }
+
+        .hotels-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .hotels-header h2 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .more-link {
+            color: #0066cc;
+            text-decoration: none;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .more-link:hover {
+            text-decoration: underline;
+        }
+
+        .hotels-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .hotel-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+
+        .hotel-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .hotel-image {
+            position: relative;
+            height: 200px;
+            overflow: hidden;
+        }
+
+        .hotel-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .favorite-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: white;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .favorite-btn:hover {
+            background-color: #f0f0f0;
+        }
+
+        .hotel-info {
+            padding: 15px;
+        }
+
+        .hotel-location {
+            color: #666;
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+
+        .hotel-name {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .hotel-rating {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .rating-badge {
+            background-color: #003b95;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .stars {
+            color: #ffa500;
+            font-size: 12px;
+        }
+
+        .review-count {
+            color: #666;
+            font-size: 12px;
+        }
+
+        .hotel-price {
+            font-size: 14px;
+        }
+
+        .price-from {
+            color: #666;
+        }
+
+        .price-amount {
+            font-weight: 600;
+            color: #000;
+        }
+
+        .price-old {
+            color: #999;
+            text-decoration: line-through;
+            margin-left: 5px;
+            font-size: 12px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            background-color: #1a1a1a;
+            color: #999;
+            font-size: 12px;
+            margin-top: 40px;
+            border-radius: 4px;
+        }
+
+        @media (max-width: 768px) {
+            .experiences-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .experience-card.large {
+                grid-column: span 1;
+                grid-row: span 1;
+                height: 200px;
+            }
+
+            .hotels-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-content {
+                width: 95%;
+                max-height: 95vh;
+            }
+
+            .modal-body {
+                padding: 20px;
+            }
+
+            .modal-actions {
+                flex-direction: column;
+            }
+
+            .photo-gallery {
+                grid-template-columns: 1fr;
+            }
+
+            .food-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .activity-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .activity-price {
+                margin-left: 0;
+                margin-top: 10px;
+            }
+        }
+        /* =========================
+   RESPONSIVE IMPROVEMENTS
+   ========================= */
+
+/* ---------- LARGE TABLETS (≤ 1024px) ---------- */
+@media (max-width: 1024px) {
+
+    .container {
+        padding: 30px 25px;
+    }
+
+    h1 {
+        font-size: 28px;
+    }
+
+    .experiences-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .experience-card.large {
+        grid-row: span 1;
+        height: 240px;
+    }
+
+    .hotels-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* ---------- TABLETS & SMALL LAPTOPS (≤ 768px) ---------- */
+@media (max-width: 768px) {
+
+    body {
+        padding: 10px;
+    }
+
+    .container {
+        padding: 20px 15px;
+    }
+
+    h1 {
+        font-size: 24px;
+        text-align: center;
+    }
+
+    /* Destinations */
+    .destinations {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    /* Experiences */
+    .experiences-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .experience-card,
+    .experience-card.large {
+        height: 200px;
+    }
+
+    /* Activities */
+    .activity-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .activity-price {
+        margin-left: 0;
+    }
+
+    /* Food */
+    .food-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* Hotels */
+    .hotels-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* Modal */
+    .modal-content,
+    .booking-modal-content {
+        width: 95%;
+        max-height: 95vh;
+    }
+
+    .modal-header h2 {
+        font-size: 22px;
+    }
+
+    .modal-body {
+        padding: 20px;
+    }
+
+    .modal-actions {
+        flex-direction: column;
+    }
+
+    .btn {
+        width: 100%;
+    }
+}
+
+/* ---------- MOBILE PHONES (≤ 480px) ---------- */
+@media (max-width: 480px) {
+
+    h1 {
+        font-size: 22px;
+    }
+
+    .destination-name {
+        font-size: 16px;
+    }
+
+    .destination-card {
+        height: 100px;
+    }
+
+    .destination-tag {
+        font-size: 10px;
+    }
+
+    .experience-name {
+        font-size: 16px;
+    }
+
+    /* Forms */
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        font-size: 14px;
+        padding: 10px;
+    }
+
+    /* Booking popup */
+    .bp-booking-box {
+        padding: 20px;
+    }
+
+    /* QR */
+    .qr-code {
+        width: 200px;
+        height: 200px;
+    }
+
+    /* Footer */
+    footer {
+        font-size: 11px;
+        padding: 15px;
+    }
+}
+
+/* ---------- TOUCH FRIENDLY ---------- */
+@media (hover: none) {
+    .destination-card:hover,
+    .experience-card:hover,
+    .hotel-card:hover {
+        transform: none;
+    }
+}
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Choose your destination</h1>
+
+        <!-- Destinations -->
+        <div class="destinations">
+            <div class="destination-card active">
+                <div class="destination-content">
+                    <img src="./imgg/pp2.JPG" alt="Kuala Lumpur">
+                    <div class="destination-overlay">
+                        <span class="destination-tag">Viewed</span>
+                        <span class="destination-name">Siem Reap</span>
+                    </div>
+                </div>
+            </div>
+            <div class="destination-card">
+                <div class="destination-content">
+                    <img src="./imgg/trip3.JPG" alt="Ta Khmau">
+                    <div class="destination-overlay">
+                        <span class="destination-tag">Coming soon</span>
+                        <span class="destination-name">Kampot</span>
+                    </div>
+                </div>
+            </div>
+            <div class="destination-card">
+                <div class="destination-content">
+                    <img src="./imgg/pic.JPG" alt="Bali">
+                    <div class="destination-overlay">
+                       <span class="destination-tag">Coming soon</span>
+                        <span class="destination-name">Phnom Penh</span>
+                    </div>
+                </div>
+            </div>
+            <div class="destination-card">
+                <div class="destination-content">
+                    <img src="./imgg/kep.jpg" alt="Istanbul">
+                    <div class="destination-overlay">
+                        <span class="destination-tag">Coming soon</span>
+                        <span class="destination-name">Kep</span>
+                    </div>
+                </div>
+            </div>
+            <div class="destination-card">
+                <div class="destination-content">
+                    <img src="./imgg/koh.jpg" alt="Hanoi">
+                    <div class="destination-overlay">
+                        <span class="destination-tag">Coming soon</span>
+                        <span class="destination-name">Koh Rong</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Must-See Experiences -->
+        <div class="experiences-section">
+            <h2>Live like a local</h2>
+            <p class="experiences-description">
+             "Live like a local" means experiencing a place the way the people who actually live there do—going beyond tourist attractions and getting a feel for everyday life.
+            </p>
+            <div class="experiences-grid">
+                <div class="experience-card" id="puNakCard">
+                    <img src="./imgg/local2.jpg" alt="Pu nak">
+                    <div class="experience-overlay">
+                        <span class="experience-name">Pu nak</span>
+                    </div>
+                </div>
+                <div class="experience-card" id="eNochCard">
+                    <img src="./imgg/floatt.jpg" alt="E noch Floating Village">
+                    <div class="experience-overlay">
+                        <span class="experience-name">E noch Floating Village</span>
+                    </div>
+                </div>
+                <div class="experience-card" id="klengEkCard">
+                    <img src="./imgg/klengek.jpg" alt="Kleng Ek Lifestyle">
+                    <div class="experience-overlay">
+                        <span class="experience-name">Kleng Ek Lifestyle of Ta Kach</span>
+                    </div>
+                </div>
+                
+                <div class="experience-card locked">
+                    <img src="https://images.unsplash.com/photo-1548013146-72479768bada?w=400" alt="Coming Soon" style="filter: grayscale(100%) brightness(0.7);">
+                    <div class="experience-overlay">
+                        <span class="destination-tag" style="position: absolute; top: 15px; left: 15px;">Coming Soon</span>
+                        <span class="experience-name">Temples Adventure</span>
+                    </div>
+                </div>
+                 <div class="experience-card locked">
+                    <img src="https://images.unsplash.com/photo-1548013146-72479768bada?w=400" alt="Coming Soon" style="filter: grayscale(100%) brightness(0.7);">
+                    <div class="experience-overlay">
+                        <span class="destination-tag" style="position: absolute; top: 15px; left: 15px;">Coming Soon</span>
+                        <span class="experience-name">Temples Adventure</span>
+                    </div>
+                </div>
+                 <div class="experience-card locked">
+                    <img src="https://images.unsplash.com/photo-1548013146-72479768bada?w=400" alt="Coming Soon" style="filter: grayscale(100%) brightness(0.7);">
+                    <div class="experience-overlay">
+                        <span class="destination-tag" style="position: absolute; top: 15px; left: 15px;">Coming Soon</span>
+                        <span class="experience-name">Temples Adventure</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hotels Section -->
+       <div class="hotels-section">
+    <div class="hotels-header">
+        <h2>Partnership in Siemreap</h2>
+        <a href="#" class="more-link">More ›</a>
+    </div>
+
+    <div class="hotels-grid">
+
+        <!-- DSK -->
+        <div class="bp-hotel-card">
+            <div class="hotel-image">
+                <img src="./imgg/dsk.png" alt="DSK Workshop">
+                <button class="favorite-btn">♡</button>
+            </div>
+            <div class="hotel-info">
+                <div class="hotel-location">Siem Reap</div>
+                <div class="bp-hotel-name">
+                    DSK Creative Workshop – Hands-on Training, Craft & Skill Development Center
+                </div>
+                <div class="hotel-rating">
+                    <span class="rating-badge">Trusted</span>
+                    <span class="stars">★★★★★</span>
+                    <span class="review-count">Community-based workshop</span>
+                </div>
+                <div class="hotel-price">
+                    <span class="price-from">Programs from </span>
+                    <span class="bp-price-amount">US$10</span>
+                    <span class="price-old">US$15</span>
+                </div>
+
+                <button class="bp-book-btn">Book Now</button>
+            </div>
+        </div>
+
+        <!-- Kleng Ek -->
+        <div class="bp-hotel-card">
+            <div class="hotel-image">
+                <img src="./imgg/klengekk.jpg" alt="Kleng Ek Workshop">
+                <button class="favorite-btn">♡</button>
+            </div>
+            <div class="hotel-info">
+                <div class="hotel-location">Siem Reap</div>
+                <div class="bp-hotel-name">
+                    Kleng Ek Workshop – Traditional Craft & Local Skills Training Center
+                </div>
+                <div class="hotel-rating">
+                    <span class="rating-badge">Community</span>
+                    <span class="stars">★★★★★</span>
+                    <span class="review-count">Local artisans & trainees</span>
+                </div>
+                <div class="hotel-price">
+                    <span class="price-from">Workshops from </span>
+                    <span class="bp-price-amount">US$5</span>
+                    <span class="price-old">US$10</span>
+                </div>
+
+                <button class="bp-book-btn">Book Now</button>
+            </div>
+        </div>
+
+        <!-- Mad Monkey -->
+        <div class="bp-hotel-card">
+            <div class="hotel-image">
+                <img src="./imgg/mad.jpg" alt="Mad Monkey Siem Reap">
+                <button class="favorite-btn">♡</button>
+            </div>
+            <div class="hotel-info">
+                <div class="hotel-location">Siem Reap</div>
+                <div class="bp-hotel-name">
+                    Mad Monkey Siem Reap – Social Hostel, Bar & Pool Experience
+                </div>
+                <div class="hotel-rating">
+                    <span class="rating-badge">8.8/10</span>
+                    <span class="review-count">Popular with backpackers</span>
+                </div>
+                <div class="hotel-price">
+                    <span class="price-from">From </span>
+                    <span class="bp-price-amount">US$8</span>
+                    <span class="price-old">US$12</span>
+                </div>
+
+                <button class="bp-book-btn">Book Now</button>
+            </div>
+        </div>
+
+        <!-- Floating Village -->
+        <div class="bp-hotel-card">
+            <div class="hotel-image">
+                <img src="./imgg/floatinggggg.jpg" alt="Floating Village Boat Tour">
+                <button class="favorite-btn">♡</button>
+            </div>
+            <div class="hotel-info">
+                <div class="hotel-location">Siem Reap</div>
+                <div class="bp-hotel-name">
+                    Floating Village Boat Tour – Explore Life on Tonlé Sap Lake
+                </div>
+                <div class="hotel-rating">
+                    <span class="rating-badge">4.6/5</span>
+                    <span class="review-count">Scenic & cultural experience</span>
+                </div>
+                <div class="hotel-price">
+                    <span class="price-from">From </span>
+                    <span class="bp-price-amount">US$15</span>
+                    <span class="price-old">US$20</span>
+                </div>
+
+                <button class="bp-book-btn">Book Now</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div id="bp-bookingPopup" style="display:none;">
+    <div class="bp-booking-box">
+        <h3>Confirm Booking</h3>
+
+        <p><strong>Service:</strong> <span id="bp-bookingService"></span></p>
+        <p><strong>Price:</strong> <span id="bp-bookingPrice"></span></p>
+
+        <input type="text" placeholder="Full Name" required>
+        <input type="email" placeholder="Email" required>
+        <input type="date" required>
+
+        <button type="submit">Confirm</button>
+        <button type="button" onclick="bpCloseBooking()">Cancel</button>
+    </div>
+</div>
+
+        <footer>
+            © 2024 TechUp Cambodia. All rights reserved.
+        </footer>
+    </div>
+
+    <!-- Modal -->
+    <div id="puNakModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Pu nak Family Experience</h2>
+                <button class="close-btn" id="closeModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- Photo Gallery Section -->
+                <div class="modal-section">
+                    <h3>Photo Gallery</h3>
+                    <div class="photo-gallery">
+                        <div class="gallery-item">
+                            <img src="https://images.unsplash.com/photo-1528127269322-539801943592?w=400" alt="Family Activity">
+                        </div>
+                        <div class="gallery-item">
+                            <img src="https://images.unsplash.com/photo-1551632811-561732d1e306?w=400" alt="Local Market">
+                        </div>
+                        <div class="gallery-item">
+                            <img src="https://images.unsplash.com/photo-1578916171728-46686eac8d58?w=400" alt="Traditional Village">
+                        </div>
+                        <div class="gallery-item">
+                            <img src="https://images.unsplash.com/photo-1528181304800-259b08848526?w=400" alt="Cooking Class">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Activities Section -->
+                <div class="modal-section">
+                    <h3>Package Activities</h3>
+                    <div style="background: #28a745; color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center;">
+                        <div style="font-size: 24px; font-weight: 700; margin-bottom: 5px;">$80 Complete Package</div>
+                        <div style="font-size: 14px; opacity: 0.95;">All activities included • Full day experience</div>
+                    </div>
+                    <p style="color: #666; font-size: 14px; margin-bottom: 20px; line-height: 1.6;">
+                        Enjoy all of these amazing activities as part of one complete package. Experience the best of local culture, cuisine, and traditions in a full day immersive journey.
+                    </p>
+                    <div class="activities-list">
+                        <div class="activity-item">
+                            <div class="activity-info">
+                                <div class="activity-name">✓ Traditional Khmer Cooking Class</div>
+                                <div class="activity-description">Learn to cook authentic Cambodian dishes with a local family. Includes market tour and 3-course meal preparation.</div>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-info">
+                                <div class="activity-name">✓ Village Bicycle Tour</div>
+                                <div class="activity-description">Explore the countryside on bicycle, visiting rice paddies, local workshops, and meeting friendly villagers.</div>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-info">
+                                <div class="activity-name">✓ Traditional Craft Workshop</div>
+                                <div class="activity-description">Create your own handicrafts using traditional techniques including basket weaving and pottery.</div>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-info">
+                                <div class="activity-name">✓ Homestay Experience (Full Day)</div>
+                                <div class="activity-description">Spend a full day with a local family, participate in daily activities, and enjoy home-cooked meals.</div>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-info">
+                                <div class="activity-name">✓ Angkor Silk Farm Visit</div>
+                                <div class="activity-description">Discover the art of silk production from silkworms to finished products. Includes hands-on weaving experience.</div>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-info">
+                                <div class="activity-name">✓ Sunset Boat Ride on Tonle Sap</div>
+                                <div class="activity-description">Experience life on the floating villages with a guided boat tour during golden hour.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Food Section -->
+                <div class="modal-section">
+                    <h3>Local Food You'll Try</h3>
+                    <div class="food-grid">
+                        <div class="food-card">
+                            <div class="food-image">
+                                <img src="https://images.unsplash.com/photo-1569562211093-4ed0d0758f12?w=400" alt="Amok">
+                            </div>
+                            <div class="food-info">
+                                <div class="food-name">Fish Amok</div>
+                                <div class="food-description">Cambodia's national dish - a creamy coconut curry with fish, steamed in banana leaves with aromatic spices.</div>
+                                <span class="food-type-badge">Main Course</span>
+                            </div>
+                        </div>
+                        <div class="food-card">
+                            <div class="food-image">
+                                <img src="https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=400" alt="Lok Lak">
+                            </div>
+                            <div class="food-info">
+                                <div class="food-name">Lok Lak</div>
+                                <div class="food-description">Stir-fried beef cubes marinated in oyster sauce, served with fresh vegetables, rice, and lime-pepper dipping sauce.</div>
+                                <span class="food-type-badge">Main Course</span>
+                            </div>
+                        </div>
+                        <div class="food-card">
+                            <div class="food-image">
+                                <img src="https://images.unsplash.com/photo-1608877907149-a206d75ba011?w=400" alt="Nom Banh Chok">
+                            </div>
+                            <div class="food-info">
+                                <div class="food-name">Nom Banh Chok</div>
+                                <div class="food-description">Fresh rice noodles topped with green curry gravy made from lemongrass and turmeric fish, served with fresh vegetables.</div>
+                                <span class="food-type-badge">Breakfast</span>
+                            </div>
+                        </div>
+                        <div class="food-card">
+                            <div class="food-image">
+                                <img src="https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=400" alt="Num Pang">
+                            </div>
+                            <div class="food-info">
+                                <div class="food-name">Num Pang (Cambodian Sandwich)</div>
+                                <div class="food-description">Fresh baguette filled with grilled pork, pâté, pickled vegetables, cucumber, and cilantro with chili sauce.</div>
+                                <span class="food-type-badge">Street Food</span>
+                            </div>
+                        </div>
+                        <div class="food-card">
+                            <div class="food-image">
+                                <img src="https://images.unsplash.com/photo-1567621935481-f0d0b4cba32a?w=400" alt="Kuy Teav">
+                            </div>
+                            <div class="food-info">
+                                <div class="food-name">Kuy Teav</div>
+                                <div class="food-description">Popular noodle soup with pork or seafood in a flavorful broth, garnished with fresh herbs and vegetables.</div>
+                                <span class="food-type-badge">Breakfast</span>
+                            </div>
+                        </div>
+                        <div class="food-card">
+                            <div class="food-image">
+                                <img src="https://images.unsplash.com/photo-1612871689353-cf20e7a9dcf3?w=400" alt="Dessert">
+                            </div>
+                            <div class="food-info">
+                                <div class="food-name">Num Plae Ai (Sticky Rice Cake)</div>
+                                <div class="food-description">Sweet sticky rice with coconut cream and palm sugar, wrapped in banana leaves. A traditional Khmer dessert.</div>
+                                <span class="food-type-badge">Dessert</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Action Buttons (Bottom) -->
+            <div class="modal-actions">
+                <button class="btn btn-message" id="messageBtn">
+                    <span>💬</span>
+                    <span>Message Us</span>
+                </button>
+                <button class="btn btn-book" id="bookBtn">
+                    <span>📅</span>
+                    <span>Book Now</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- E noch Floating Village Modal -->
+    <div id="eNochModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>E noch Floating Village Experience</h2>
+                <button class="close-btn" id="closeENochModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- Photo Gallery Section -->
+                <div class="modal-section">
+                    <h3>Photo Gallery</h3>
+                    <div class="photo-gallery">
+                        <div class="gallery-item">
+                            <img src="https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=400" alt="Floating Village">
+                        </div>
+                        <div class="gallery-item">
+                            <img src="https://images.unsplash.com/photo-1564507592333-c60657eea523?w=400" alt="Floating Houses">
+                        </div>
+                        <div class="gallery-item">
+                            <img src="https://images.unsplash.com/photo-1551632811-561732d1e306?w=400" alt="Village Life">
+                        </div>
+                        <div class="gallery-item">
+                            <img src="https://images.unsplash.com/photo-1578916171728-46686eac8d58?w=400" alt="Water Activities">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Activities Section -->
+                <div class="modal-section">
+                    <h3>Package Activities</h3>
+                    <div style="background: #28a745; color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center;">
+                        <div style="font-size: 24px; font-weight: 700; margin-bottom: 5px;">$80 Complete Package</div>
+                        <div style="font-size: 14px; opacity: 0.95;">All activities included • Full day experience</div>
+                    </div>
+                    <p style="color: #666; font-size: 14px; margin-bottom: 20px; line-height: 1.6;">
+                        Discover the unique floating village lifestyle on Tonle Sap Lake. Experience daily life on the water with local families who have lived on the lake for generations.
+                    </p>
+                    <div class="activities-list">
+                        <div class="activity-item">
+                            <div class="activity-info">
+                                <div class="activity-name">✓ Boat Tour of Floating Village</div>
+                                <div class="activity-description">Navigate through the floating community, visit homes, schools, and markets built entirely on water.</div>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-info">
+                                <div class="activity-name">✓ Fish Farm Visit</div>
+                                <div class="activity-description">Learn about sustainable fish farming practices and see how locals harvest fish from underwater cages.</div>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-info">
+                                <div class="activity-name">✓ Floating School Experience</div>
+                                <div class="activity-description">Visit the floating school and meet local children, learn about education challenges and opportunities on the water.</div>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-info">
+                                <div class="activity-name">✓ Traditional Fishing Demonstration</div>
+                                <div class="activity-description">Watch and participate in traditional fishing methods passed down through generations.</div>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-info">
+                                <div class="activity-name">✓ Floating Market Shopping</div>
+                                <div class="activity-description">Browse the floating market where vendors sell fresh produce, handicrafts, and local specialties from their boats.</div>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-info">
+                                <div class="activity-name">✓ Sunset Lake Cruise</div>
+                                <div class="activity-description">End your day with a peaceful sunset cruise across the expansive Tonle Sap Lake.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Food Section -->
+                <div class="modal-section">
+                    <h3>Local Food You'll Try</h3>
+                    <div class="food-grid">
+                        <div class="food-card">
+                            <div class="food-image">
+                                <img src="https://images.unsplash.com/photo-1567621935481-f0d0b4cba32a?w=400" alt="Fish Soup">
+                            </div>
+                            <div class="food-info">
+                                <div class="food-name">Sour Fish Soup (Samlor Machu)</div>
+                                <div class="food-description">Fresh water fish soup with tamarind, pineapple, and local vegetables - a Tonle Sap specialty.</div>
+                                <span class="food-type-badge">Main Course</span>
+                            </div>
+                        </div>
+                        <div class="food-card">
+                            <div class="food-image">
+                                <img src="https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=400" alt="Grilled Fish">
+                            </div>
+                            <div class="food-info">
+                                <div class="food-name">Grilled Freshwater Fish</div>
+                                <div class="food-description">Locally caught fish grilled over charcoal, served with herbs and spicy dipping sauce.</div>
+                                <span class="food-type-badge">Main Course</span>
+                            </div>
+                        </div>
+                        <div class="food-card">
+                            <div class="food-image">
+                                <img src="https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=400" alt="Rice Porridge">
+                            </div>
+                            <div class="food-info">
+                                <div class="food-name">Bobor (Rice Porridge)</div>
+                                <div class="food-description">Comforting rice porridge with fish, ginger, and local herbs - a village breakfast favorite.</div>
+                                <span class="food-type-badge">Breakfast</span>
+                            </div>
+                        </div>
+                        <div class="food-card">
+                            <div class="food-image">
+                                <img src="https://images.unsplash.com/photo-1569562211093-4ed0d0758f12?w=400" alt="Fish Amok">
+                            </div>
+                            <div class="food-info">
+                                <div class="food-name">Water Lily Stems Salad</div>
+                                <div class="food-description">Fresh water lily stems harvested from the lake, prepared as a crispy salad with fish and lime.</div>
+                                <span class="food-type-badge">Appetizer</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Action Buttons (Bottom) -->
+            <div class="modal-actions">
+                <button class="btn btn-message" class="messageBtn">
+                    <span>💬</span>
+                    <span>Message Us</span>
+                </button>
+                <button class="btn btn-book" class="bookBtnENoch">
+                    <span>📅</span>
+                    <span>Book Now</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Kleng Ek Lifestyle Modal -->
+    <div id="klengEkModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Kleng Ek Lifestyle of Ta Kach</h2>
+                <button class="close-btn" id="closeKlengEkModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- Photo Gallery Section -->
+                <div class="modal-section">
+                    <h3>Photo Gallery</h3>
+                    <div class="photo-gallery">
+                        <div class="gallery-item">
+                            <img src="https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=400" alt="Rural Life">
+                        </div>
+                        <div class="gallery-item">
+                            <img src="https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?w=400" alt="Rice Fields">
+                        </div>
+                        <div class="gallery-item">
+                            <img src="https://images.unsplash.com/photo-1551632811-561732d1e306?w=400" alt="Local Artisans">
+                        </div>
+                        <div class="gallery-item">
+                            <img src="https://images.unsplash.com/photo-1528181304800-259b08848526?w=400" alt="Village Activities">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Activities Section -->
+                <div class="modal-section">
+                    <h3>Package Activities</h3>
+                    <div style="background: #28a745; color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center;">
+                        <div style="font-size: 24px; font-weight: 700; margin-bottom: 5px;">$80 Complete Package</div>
+                        <div style="font-size: 14px; opacity: 0.95;">All activities included • Full day experience</div>
+                    </div>
+                    <p style="color: #666; font-size: 14px; margin-bottom: 20px; line-height: 1.6;">
+                        Immerse yourself in authentic rural Cambodian life at Ta Kach village. Experience traditional farming, crafts, and the warm hospitality of Kleng Ek community.
+                    </p>
+                    <div class="activities-list">
+                        <div class="activity-item">
+                            <div class="activity-info">
+                                <div class="activity-name">✓ Rice Farming Experience</div>
+                                <div class="activity-description">Work alongside farmers in the rice paddies, learn traditional planting and harvesting techniques.</div>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-info">
+                                <div class="activity-name">✓ Water Buffalo Cart Ride</div>
+                                <div class="activity-description">Travel through the village and countryside in a traditional ox cart, the classic rural transport.</div>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-info">
+                                <div class="activity-name">✓ Palm Sugar Making</div>
+                                <div class="activity-description">Climb palm trees and learn the process of collecting sap and making traditional palm sugar.</div>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-info">
+                                <div class="activity-name">✓ Traditional Weaving Workshop</div>
+                                <div class="activity-description">Learn traditional mat and basket weaving from local artisans using palm leaves and bamboo.</div>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-info">
+                                <div class="activity-name">✓ Village Temple Visit</div>
+                                <div class="activity-description">Visit the local Buddhist temple, learn about rural religious practices and meet the village monks.</div>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-info">
+                                <div class="activity-name">✓ Traditional Games & Music</div>
+                                <div class="activity-description">Play traditional Cambodian games and learn folk songs with village children and families.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Food Section -->
+                <div class="modal-section">
+                    <h3>Local Food You'll Try</h3>
+                    <div class="food-grid">
+                        <div class="food-card">
+                            <div class="food-image">
+                                <img src="https://images.unsplash.com/photo-1569562211093-4ed0d0758f12?w=400" alt="Rice Dish">
+                            </div>
+                            <div class="food-info">
+                                <div class="food-name">Bai Sach Chrouk</div>
+                                <div class="food-description">Grilled pork with broken rice, pickled vegetables and cucumber - a beloved village breakfast.</div>
+                                <span class="food-type-badge">Breakfast</span>
+                            </div>
+                        </div>
+                        <div class="food-card">
+                            <div class="food-image">
+                                <img src="https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=400" alt="Grilled Chicken">
+                            </div>
+                            <div class="food-info">
+                                <div class="food-name">Ang Dtray-Meuk (Grilled Squid)</div>
+                                <div class="food-description">Free-range village chicken grilled over wood fire, served with sticky rice and green mango salad.</div>
+                                <span class="food-type-badge">Main Course</span>
+                            </div>
+                        </div>
+                        <div class="food-card">
+                            <div class="food-image">
+                                <img src="https://images.unsplash.com/photo-1608877907149-a206d75ba011?w=400" alt="Vegetable Stir Fry">
+                            </div>
+                            <div class="food-info">
+                                <div class="food-name">Morning Glory Stir Fry</div>
+                                <div class="food-description">Fresh morning glory from the village garden, stir-fried with garlic and fermented soy bean.</div>
+                                <span class="food-type-badge">Side Dish</span>
+                            </div>
+                        </div>
+                        <div class="food-card">
+                            <div class="food-image">
+                                <img src="https://images.unsplash.com/photo-1612871689353-cf20e7a9dcf3?w=400" alt="Palm Sugar Cake">
+                            </div>
+                            <div class="food-info">
+                                <div class="food-name">Nom Kom (Palm Sugar Cake)</div>
+                                <div class="food-description">Sweet sticky rice cake made with fresh palm sugar from the village - a traditional treat.</div>
+                                <span class="food-type-badge">Dessert</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Action Buttons (Bottom) -->
+            <div class="modal-actions">
+                <button class="btn btn-message" class="messageBtn">
+                    <span>💬</span>
+                    <span>Message Us</span>
+                </button>
+                <button class="btn btn-book" class="bookBtnKlengEk">
+                    <span>📅</span>
+                    <span>Book Now</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Booking Modal -->
+    <div id="bookingModal" class="booking-modal">
+        <div class="booking-modal-content">
+            <div class="modal-header">
+                <h2>Book Your Experience</h2>
+                <button class="close-btn" id="closeBookingModal">&times;</button>
+            </div>
+            <form class="booking-form" id="bookingForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="firstName">First Name *</label>
+                        <input type="text" id="firstName" name="firstName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="lastName">Last Name *</label>
+                        <input type="text" id="lastName" name="lastName" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email *</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">Phone Number *</label>
+                    <input type="tel" id="phone" name="phone" required>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="date">Preferred Date *</label>
+                        <input type="date" id="date" name="date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="guests">Number of Guests *</label>
+                        <input type="number" id="guests" name="guests" min="1" value="1" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="packageInfo">Package Selected *</label>
+                    <input type="text" id="packageInfo" name="packageInfo" value="Pu nak Complete Experience - $80" readonly style="background-color: #f8f9fa; font-weight: 600; color: #28a745;">
+                    <p style="color: #666; font-size: 13px; margin-top: 8px;">✓ All activities included in this package</p>
+                </div>
+
+                <div class="form-group">
+                    <label for="specialRequests">Special Requests</label>
+                    <textarea id="specialRequests" name="specialRequests" placeholder="Any dietary restrictions, accessibility needs, or special requests..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Payment Method *</label>
+                    <div class="payment-options">
+                        <label class="payment-option" id="qrPaymentOption">
+                            <input type="radio" name="payment" value="qr" required>
+                            <div class="payment-option-content">
+                                <div class="payment-option-title">🏦 Bank Transfer (QR Code)</div>
+                                <div class="payment-option-desc">Scan QR code to pay now</div>
+                            </div>
+                        </label>
+                        <label class="payment-option" id="laterPaymentOption">
+                            <input type="radio" name="payment" value="later" required>
+                            <div class="payment-option-content">
+                                <div class="payment-option-title">💳 Pay Later</div>
+                                <div class="payment-option-desc">Reserve now, pay when you arrive</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- QR Code Section -->
+                <div class="qr-section" id="qrSection">
+                    <h3>Scan to Pay</h3>
+                    <div class="qr-code">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=Bank:ABA|Account:001234567|Name:TechUp Cambodia|Amount:USD" alt="QR Code for Payment">
+                    </div>
+                    <div class="bank-info">
+                        <p><strong>Bank:</strong> ABA Bank</p>
+                        <p><strong>Account Name:</strong> TechUp Cambodia</p>
+                        <p><strong>Account Number:</strong> 001 234 567</p>
+                        <p style="color: #666; font-size: 12px; margin-top: 10px;">Please complete payment and submit the form. We'll confirm your booking within 24 hours.</p>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-cancel" id="cancelBooking">Cancel</button>
+                    <button type="submit" class="btn btn-submit">Complete Booking</button>
+                </div>
+            </form>
+        </div>
+    </div>
+<script>
+  // Select all Book Now buttons
+  document.querySelectorAll('.bp-book-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+          // Find the parent card
+          const card = btn.closest('.bp-hotel-card');
+
+          // Set the service name and price in the booking popup
+          document.getElementById('bp-bookingService').innerText =
+              card.querySelector('.bp-hotel-name').innerText;
+          document.getElementById('bp-bookingPrice').innerText =
+              card.querySelector('.bp-price-amount').innerText;
+
+          // Show the booking popup
+          document.getElementById('bp-bookingPopup').style.display = 'flex';
+      });
+  });
+
+  // Close the booking popup
+  function bpCloseBooking() {
+      document.getElementById('bp-bookingPopup').style.display = 'none';
+  }
+
+  // Optional: Close popup when clicking outside the modal box
+  document.getElementById('bp-bookingPopup').addEventListener('click', (e) => {
+      if (e.target.id === 'bp-bookingPopup') {
+          bpCloseBooking();
+      }
+  });
+</script>
+
+    <script>
+        // Modal functionality
+        const modal = document.getElementById('puNakModal');
+        const puNakCard = document.getElementById('puNakCard');
+        const closeBtn = document.getElementById('closeModal');
+        const bookBtn = document.getElementById('bookBtn');
+        const messageBtn = document.getElementById('messageBtn');
+
+        // E noch modal elements
+        const eNochModal = document.getElementById('eNochModal');
+        const eNochCard = document.getElementById('eNochCard');
+        const closeENochModal = document.getElementById('closeENochModal');
+
+        // Kleng Ek modal elements
+        const klengEkModal = document.getElementById('klengEkModal');
+        const klengEkCard = document.getElementById('klengEkCard');
+        const closeKlengEkModal = document.getElementById('closeKlengEkModal');
+
+        // Booking modal elements
+        const bookingModal = document.getElementById('bookingModal');
+        const closeBookingModal = document.getElementById('closeBookingModal');
+        const cancelBooking = document.getElementById('cancelBooking');
+        const bookingForm = document.getElementById('bookingForm');
+        const qrSection = document.getElementById('qrSection');
+        const paymentOptions = document.querySelectorAll('.payment-option');
+        const packageInfo = document.getElementById('packageInfo');
+
+        // Variable to track which experience is being booked
+        let currentExperience = 'Pu nak Complete Experience - $80';
+
+        // Open Pu nak modal
+        puNakCard.addEventListener('click', function(e) {
+            e.stopPropagation();
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+
+        // Close Pu nak modal
+        closeBtn.addEventListener('click', function() {
+            modal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        });
+
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                modal.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            }
+        });
+
+        // Open E noch modal
+        eNochCard.addEventListener('click', function(e) {
+            e.stopPropagation();
+            eNochModal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+
+        // Close E noch modal
+        closeENochModal.addEventListener('click', function() {
+            eNochModal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        });
+
+        eNochModal.addEventListener('click', function(e) {
+            if (e.target === eNochModal) {
+                eNochModal.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            }
+        });
+
+        // Open Kleng Ek modal
+        klengEkCard.addEventListener('click', function(e) {
+            e.stopPropagation();
+            klengEkModal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+
+        // Close Kleng Ek modal
+        closeKlengEkModal.addEventListener('click', function() {
+            klengEkModal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        });
+
+        klengEkModal.addEventListener('click', function(e) {
+            if (e.target === klengEkModal) {
+                klengEkModal.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            }
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                if (bookingModal.classList.contains('active')) {
+                    bookingModal.classList.remove('active');
+                    document.body.style.overflow = 'auto';
+                } else if (modal.classList.contains('active')) {
+                    modal.classList.remove('active');
+                    document.body.style.overflow = 'auto';
+                } else if (eNochModal.classList.contains('active')) {
+                    eNochModal.classList.remove('active');
+                    document.body.style.overflow = 'auto';
+                } else if (klengEkModal.classList.contains('active')) {
+                    klengEkModal.classList.remove('active');
+                    document.body.style.overflow = 'auto';
+                }
+            }
+        });
+
+        // Book button functionality - Pu nak
+        bookBtn.addEventListener('click', function() {
+            currentExperience = 'Pu nak Complete Experience - $80';
+            packageInfo.value = currentExperience;
+            bookingModal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+
+        // Book buttons for E noch
+        document.querySelectorAll('.bookBtnENoch').forEach(btn => {
+            btn.addEventListener('click', function() {
+                currentExperience = 'E noch Floating Village - $80';
+                packageInfo.value = currentExperience;
+                bookingModal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            });
+        });
+
+        // Book buttons for Kleng Ek
+        document.querySelectorAll('.bookBtnKlengEk').forEach(btn => {
+            btn.addEventListener('click', function() {
+                currentExperience = 'Kleng Ek Lifestyle of Ta Kach - $80';
+                packageInfo.value = currentExperience;
+                bookingModal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            });
+        });
+
+        // Close booking modal
+        closeBookingModal.addEventListener('click', function() {
+            bookingModal.classList.remove('active');
+            document.body.style.overflow = 'hidden';
+        });
+
+        cancelBooking.addEventListener('click', function() {
+            bookingModal.classList.remove('active');
+            document.body.style.overflow = 'hidden';
+        });
+
+        bookingModal.addEventListener('click', function(e) {
+            if (e.target === bookingModal) {
+                bookingModal.classList.remove('active');
+                document.body.style.overflow = 'hidden';
+            }
+        });
+
+        // Payment option selection
+        paymentOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                paymentOptions.forEach(opt => opt.classList.remove('selected'));
+                this.classList.add('selected');
+                
+                const radio = this.querySelector('input[type="radio"]');
+                radio.checked = true;
+                
+                if (radio.value === 'qr') {
+                    qrSection.classList.add('active');
+                } else {
+                    qrSection.classList.remove('active');
+                }
+            });
+        });
+
+        // Form submission
+        bookingForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(bookingForm);
+            const data = Object.fromEntries(formData.entries());
+            
+            console.log('Booking Data:', data);
+            
+            window.location.href = 'thankyou.html';
+        });
+
+        // Message buttons functionality
+        document.querySelectorAll('.messageBtn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                alert('Opening message dialog...\n\nYou can integrate this with:\n- WhatsApp\n- Messenger\n- Email\n- Live Chat');
+            });
+        });
+
+        messageBtn.addEventListener('click', function() {
+            alert('Opening message dialog...\n\nYou can integrate this with:\n- WhatsApp\n- Messenger\n- Email\n- Live Chat');
+        });
+
+        // Favorite button functionality
+        document.querySelectorAll('.favorite-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                if (this.textContent === '♡') {
+                    this.textContent = '♥';
+                    this.style.color = '#ff0000';
+                } else {
+                    this.textContent = '♡';
+                    this.style.color = '#000';
+                }
+            });
+        });
+
+        // Card click handlers
+        document.querySelectorAll('.destination-card').forEach(card => {
+            card.addEventListener('click', function() {
+                document.querySelectorAll('.destination-card').forEach(c => c.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // Other experience cards - only handle locked cards
+        document.querySelectorAll('.experience-card.locked').forEach(card => {
+            card.addEventListener('click', function(e) {
+                e.preventDefault();
+                alert('🔒 This experience is coming soon! Stay tuned for updates.');
+            });
+        });
+
+        document.querySelectorAll('.hotel-card').forEach(card => {
+            card.addEventListener('click', function() {
+                console.log('Hotel card clicked:', this);
+            });
+        });
+
+        // Smooth hover effects
+        document.querySelectorAll('.hotel-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-4px)';
+            });
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+    </script>
+</body>
+</html>
