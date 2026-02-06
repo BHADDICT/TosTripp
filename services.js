@@ -1,86 +1,104 @@
-const CACHE_NAME = 'tourism-companion-v1';
-const OFFLINE_URL = '/index.html';
+/* ===============================
+   Tourism Companion – Service Worker
+   =============================== */
 
-// Files to cache for offline use
-const CACHE_URLS = [
-  './',
-  './triallll.html',
-  './Manifest.json'
+const CACHE_NAME = 'tourism-companion-v1';
+
+// Must match manifest start_url
+const OFFLINE_URL = '/';
+
+// Core files required for offline app shell
+const CORE_ASSETS = [
+  '/',
+  '/triallll.html',
+  '/manifest.json',
+  '/services.js',
+    '/offline.js',
 ];
 
-// Install event - cache files
+/* ===============================
+   INSTALL – Cache app shell
+   =============================== */
 self.addEventListener('install', (event) => {
-  console.log('[Service Worker] Installing...');
+  console.log('[SW] Install');
+
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('[Service Worker] Caching app shell');
-      return cache.addAll(CACHE_URLS);
-    }).then(() => {
-      return self.skipWaiting();
-    })
+      console.log('[SW] Caching core assets');
+      return cache.addAll(CORE_ASSETS);
+    }).then(() => self.skipWaiting())
   );
 });
 
-// Activate event - clean up old caches
+/* ===============================
+   ACTIVATE – Clean old caches
+   =============================== */
 self.addEventListener('activate', (event) => {
-  console.log('[Service Worker] Activating...');
+  console.log('[SW] Activate');
+
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            console.log('[Service Worker] Deleting old cache:', cacheName);
-            return caches.delete(cacheName);
+    caches.keys().then((cacheNames) =>
+      Promise.all(
+        cacheNames.map((cache) => {
+          if (cache !== CACHE_NAME) {
+            console.log('[SW] Removing old cache:', cache);
+            return caches.delete(cache);
           }
         })
-      );
-    }).then(() => {
-      return self.clients.claim();
-    })
+      )
+    ).then(() => self.clients.claim())
   );
 });
 
-// Fetch event - serve from cache, fallback to network
+/* ===============================
+   FETCH – Cache-first + fallback
+   =============================== */
 self.addEventListener('fetch', (event) => {
-  // Skip cross-origin requests
-  if (!event.request.url.startsWith(self.location.origin)) {
-    return;
-  }
+  if (event.request.method !== 'GET') return;
+  if (!event.request.url.startsWith(self.location.origin)) return;
 
   event.respondWith(
-    caches.match(event.request).then((response) => {
-      if (response) {
-        console.log('[Service Worker] Serving from cache:', event.request.url);
-        return response;
+    caches.match(event.request).then((cached) => {
+      // Serve cached content first
+      if (cached) {
+        return cached;
       }
 
-      return fetch(event.request).then((response) => {
-        // Don't cache if not a success response
-        if (!response || response.status !== 200 || response.type !== 'basic') {
+      // Fetch from network
+      return fetch(event.request)
+        .then((response) => {
+          // Only cache valid responses
+          if (
+            !response ||
+            response.status !== 200 ||
+            response.type !== 'basic'
+          ) {
+            return response;
+          }
+
+          const responseClone = response.clone();
+
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseClone);
+          });
+
           return response;
-        }
-
-        // Clone the response
-        const responseToCache = response.clone();
-
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseToCache);
+        })
+        .catch(() => {
+          // Offline fallback for navigation
+          if (event.request.mode === 'navigate') {
+            return caches.match(OFFLINE_URL);
+          }
         });
-
-        return response;
-      }).catch(() => {
-        // If both cache and network fail, show offline page for navigation requests
-        if (event.request.mode === 'navigate') {
-          return caches.match(OFFLINE_URL);
-        }
-      });
     })
   );
 });
 
-// Handle messages from the main app
+/* ===============================
+   MESSAGE – Skip waiting support
+   =============================== */
 self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'SKIP_WAITING') {
+  if (event.data?.type === 'SKIP_WAITING') {
     self.skipWaiting();
   }
 });
