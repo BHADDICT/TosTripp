@@ -1,7 +1,7 @@
 {
   "name": "Tourism Companion Pro",
   "short_name": "Tourism Pro",
-  "description": "Premium offline travel companion for Cambodia with GPS, emergency services, phrases, and travel tools",
+  "description": "Premium offline travel companion for Cambodia",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#667eea",
@@ -10,89 +10,43 @@
   "scope": "/",
   "icons": [
     {
-      "src": "icon-72.png",
-      "sizes": "72x72",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "icon-96.png",
-      "sizes": "96x96",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "icon-128.png",
-      "sizes": "128x128",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "icon-144.png",
-      "sizes": "144x144",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "icon-152.png",
-      "sizes": "152x152",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "icon-192.png",
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='100' fill='%23667eea'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='280' fill='white'%3E🌟%3C/text%3E%3C/svg%3E",
       "sizes": "192x192",
-      "type": "image/png",
+      "type": "image/svg+xml",
       "purpose": "any maskable"
     },
     {
-      "src": "icon-384.png",
-      "sizes": "384x384",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "icon-512.png",
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='100' fill='%23667eea'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='280' fill='white'%3E🌟%3C/text%3E%3C/svg%3E",
       "sizes": "512x512",
-      "type": "image/png",
+      "type": "image/svg+xml",
       "purpose": "any maskable"
     }
   ],
-  "categories": ["travel", "utilities", "lifestyle", "navigation"],
-  "screenshots": [],
+  "categories": ["travel", "utilities", "lifestyle"],
   "shortcuts": [
     {
       "name": "Emergency Call",
-      "short_name": "Emergency",
+      "short_name": "SOS",
       "description": "Quick access to emergency services",
-      "url": "/?tab=emergency",
-      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
-    },
-    {
-      "name": "Share Location",
-      "short_name": "Location",
-      "description": "Share your current location",
-      "url": "/?action=share",
-      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+      "url": "/?action=emergency",
+      "icons": [
+        {
+          "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%23ef4444'/%3E%3Ctext x='50' y='50' dominant-baseline='middle' text-anchor='middle' font-size='50' fill='white'%3E🚨%3C/text%3E%3C/svg%3E",
+          "sizes": "96x96"
+        }
+      ]
     },
     {
       "name": "Phrases",
       "short_name": "Phrases",
-      "description": "Common travel phrases",
-      "url": "/?tab=phrases",
-      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
-    },
-    {
-      "name": "Embassy Contacts",
-      "short_name": "Embassy",
-      "description": "Embassy contact information",
-      "url": "/?tab=embassy",
-      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+      "description": "Quick Khmer phrases",
+      "url": "/?action=phrases",
+      "icons": [
+        {
+          "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%238b5cf6'/%3E%3Ctext x='50' y='50' dominant-baseline='middle' text-anchor='middle' font-size='50' fill='white'%3E🗣️%3C/text%3E%3C/svg%3E",
+          "sizes": "96x96"
+        }
+      ]
     }
-  ],
-  "prefer_related_applications": false,
-  "related_applications": [],
-  "iarc_rating_id": "",
-  "dir": "ltr",
-  "lang": "en-US"
+  ]
 }
