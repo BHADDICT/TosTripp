@@ -1,48 +1,43 @@
-/* ===============================
+/* ======================================
    Tourism Companion – Service Worker
-   =============================== */
+   GitHub Pages Compatible
+   ====================================== */
 
 const CACHE_NAME = 'tourism-companion-v1';
+const BASE_PATH = '/TosTripp/';
+const OFFLINE_URL = BASE_PATH;
 
-// Must match manifest start_url
-const OFFLINE_URL = '/';
-
-// Core files required for offline app shell
+// App shell files (ADD more if needed)
 const CORE_ASSETS = [
-  '/',
-  '/triallll.html',
-  '/manifest.json',
-  '/services.js',
-    '/offline.js',
+  BASE_PATH,
+  BASE_PATH + 'index.html',
+  BASE_PATH + 'triallll.html',
+  BASE_PATH + 'manifest.json',
+  BASE_PATH + 'services.js',
+  BASE_PATH + 'offline.js'
 ];
 
 /* ===============================
-   INSTALL – Cache app shell
+   INSTALL
    =============================== */
 self.addEventListener('install', (event) => {
-  console.log('[SW] Install');
-
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('[SW] Caching core assets');
       return cache.addAll(CORE_ASSETS);
     }).then(() => self.skipWaiting())
   );
 });
 
 /* ===============================
-   ACTIVATE – Clean old caches
+   ACTIVATE
    =============================== */
 self.addEventListener('activate', (event) => {
-  console.log('[SW] Activate');
-
   event.waitUntil(
-    caches.keys().then((cacheNames) =>
+    caches.keys().then((keys) =>
       Promise.all(
-        cacheNames.map((cache) => {
-          if (cache !== CACHE_NAME) {
-            console.log('[SW] Removing old cache:', cache);
-            return caches.delete(cache);
+        keys.map((key) => {
+          if (key !== CACHE_NAME) {
+            return caches.delete(key);
           }
         })
       )
@@ -51,7 +46,8 @@ self.addEventListener('activate', (event) => {
 });
 
 /* ===============================
-   FETCH – Cache-first + fallback
+   FETCH
+   Cache-first, network fallback
    =============================== */
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
@@ -59,33 +55,23 @@ self.addEventListener('fetch', (event) => {
 
   event.respondWith(
     caches.match(event.request).then((cached) => {
-      // Serve cached content first
-      if (cached) {
-        return cached;
-      }
+      if (cached) return cached;
 
-      // Fetch from network
       return fetch(event.request)
         .then((response) => {
-          // Only cache valid responses
           if (
-            !response ||
-            response.status !== 200 ||
-            response.type !== 'basic'
+            response &&
+            response.status === 200 &&
+            response.type === 'basic'
           ) {
-            return response;
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, clone);
+            });
           }
-
-          const responseClone = response.clone();
-
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseClone);
-          });
-
           return response;
         })
         .catch(() => {
-          // Offline fallback for navigation
           if (event.request.mode === 'navigate') {
             return caches.match(OFFLINE_URL);
           }
@@ -95,10 +81,10 @@ self.addEventListener('fetch', (event) => {
 });
 
 /* ===============================
-   MESSAGE – Skip waiting support
+   MESSAGE – Force update
    =============================== */
 self.addEventListener('message', (event) => {
-  if (event.data?.type === 'SKIP_WAITING') {
+  if (event.data === 'SKIP_WAITING') {
     self.skipWaiting();
   }
 });
