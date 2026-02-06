@@ -118,6 +118,87 @@
             padding: 8px 16px;
         }
 
+        /* Install Modal */
+        .install-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            z-index: 10001;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s;
+        }
+
+        .install-modal-content {
+            background: white;
+            padding: 32px;
+            border-radius: 24px;
+            max-width: 500px;
+            margin: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .install-modal h2 {
+            font-size: 24px;
+            margin-bottom: 16px;
+            color: #1f2937;
+        }
+
+        .install-modal p {
+            color: #6b7280;
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }
+
+        .install-steps {
+            background: #f3f4f6;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+
+        .install-step {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+            align-items: flex-start;
+        }
+
+        .install-step:last-child {
+            margin-bottom: 0;
+        }
+
+        .install-step-number {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .install-step-text {
+            color: #374151;
+            line-height: 1.5;
+            font-size: 15px;
+        }
+
         /* Status Bar */
         .status-bar {
             position: fixed;
@@ -753,6 +834,7 @@
         @media print {
             .emergency-fab,
             .install-prompt,
+            .install-modal,
             .status-bar,
             .quick-actions {
                 display: none;
@@ -773,6 +855,38 @@
         </div>
         <button onclick="installApp()">Install</button>
         <button class="close" onclick="closeInstallPrompt()">Later</button>
+    </div>
+
+    <!-- Mobile Sticky Install Banner (appears at bottom on mobile) -->
+    <div id="mobileInstallBanner" style="display: none; position: fixed; bottom: 0; left: 0; right: 0; background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 16px 20px; z-index: 10000; box-shadow: 0 -4px 20px rgba(0,0,0,0.2); animation: slideUp 0.4s;">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; max-width: 600px; margin: 0 auto;">
+            <div style="flex: 1;">
+                <div style="font-weight: 700; font-size: 16px; margin-bottom: 4px;">📥 Add to Home Screen</div>
+                <div style="font-size: 13px; opacity: 0.95;">Quick access for emergencies - works offline!</div>
+            </div>
+            <button onclick="promptInstall()" style="background: white; color: #059669; border: none; padding: 12px 24px; border-radius: 12px; font-weight: 700; font-size: 14px; cursor: pointer; white-space: nowrap; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                Install Now
+            </button>
+            <button onclick="closeMobileInstallBanner()" style="background: rgba(255,255,255,0.2); color: white; border: none; padding: 8px; border-radius: 8px; cursor: pointer; font-size: 20px; line-height: 1; width: 36px; height: 36px;">
+                ✕
+            </button>
+        </div>
+    </div>
+
+    <!-- Install Instructions Modal -->
+    <div class="install-modal" id="installModal">
+        <div class="install-modal-content">
+            <h2>📥 Add to Home Screen</h2>
+            <p>Install this app on your device for quick offline access during emergencies.</p>
+            
+            <div class="install-steps" id="installInstructions">
+                <!-- Instructions will be inserted here based on device -->
+            </div>
+            
+            <div style="display: flex; gap: 12px; margin-top: 20px;">
+                <button class="btn btn-primary" style="flex: 1;" onclick="closeInstallModal()">Got it!</button>
+            </div>
+        </div>
     </div>
 
     <!-- Status Bar -->
@@ -797,6 +911,10 @@
 
         <!-- Quick Actions -->
         <div class="quick-actions">
+            <button class="quick-action-btn" style="background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 4px 20px rgba(16, 185, 129, 0.3);" onclick="promptInstall()" id="installBtn">
+                <span class="icon">📥</span>
+                <span>Install App</span>
+            </button>
             <button class="quick-action-btn" onclick="shareLocation()">
                 <span class="icon">📤</span>
                 <span>Share Location</span>
@@ -1340,10 +1458,33 @@
             updateNetworkStatus();
             updateBatteryStatus();
             getLocation();
+            checkInstallStatus();
+            showMobileInstallBanner();
             
             // Update location every 30 seconds
             setInterval(getLocation, 30000);
         });
+
+        // Show mobile install banner on mobile devices
+        function showMobileInstallBanner() {
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+            const hasSeenBanner = localStorage.getItem('hideInstallBanner');
+
+            // Show banner on mobile if not installed and user hasn't dismissed it
+            if (isMobile && !isStandalone && !hasSeenBanner) {
+                // Show after 3 seconds to not be too intrusive
+                setTimeout(() => {
+                    document.getElementById('mobileInstallBanner').style.display = 'block';
+                }, 3000);
+            }
+        }
+
+        function closeMobileInstallBanner() {
+            document.getElementById('mobileInstallBanner').style.display = 'none';
+            // Remember user dismissed it (will show again on next visit)
+            localStorage.setItem('hideInstallBanner', 'true');
+        }
 
         // Background animation
         function initBackgroundAnimation() {
@@ -1358,6 +1499,18 @@
                 shape.style.animationDelay = Math.random() * 20 + 's';
                 shape.style.animationDuration = (Math.random() * 10 + 15) + 's';
                 container.appendChild(shape);
+            }
+        }
+
+        // Check if app is already installed
+        function checkInstallStatus() {
+            // Check if running as standalone PWA
+            if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
+                // Hide install button if already installed
+                const installBtn = document.getElementById('installBtn');
+                if (installBtn) {
+                    installBtn.style.display = 'none';
+                }
             }
         }
 
@@ -1548,13 +1701,35 @@
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
+            
+            // Show the install prompt banner
             document.getElementById('installPrompt').style.display = 'flex';
+            
+            // Make the install button pulse to draw attention
+            const installBtn = document.getElementById('installBtn');
+            if (installBtn) {
+                installBtn.style.animation = 'pulse 2s infinite';
+            }
+        });
+
+        // Listen for successful installation
+        window.addEventListener('appinstalled', (evt) => {
+            console.log('App installed successfully');
+            document.getElementById('installPrompt').style.display = 'none';
+            document.getElementById('installBtn').style.display = 'none';
+            
+            // Show success message
+            alert('✅ App installed! You can now use it offline from your home screen.');
         });
 
         function installApp() {
             if (deferredPrompt) {
                 deferredPrompt.prompt();
                 deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('PWA installed');
+                        document.getElementById('installBtn').style.display = 'none';
+                    }
                     deferredPrompt = null;
                     document.getElementById('installPrompt').style.display = 'none';
                 });
@@ -1565,9 +1740,133 @@
             document.getElementById('installPrompt').style.display = 'none';
         }
 
+        // Manual install prompt with instructions
+        function promptInstall() {
+            // Try automatic install first - this works on Android Chrome/Edge
+            if (deferredPrompt) {
+                installApp();
+                return;
+            }
+
+            // For browsers that support it but haven't triggered beforeinstallprompt yet
+            // Try to show a helpful animation/indicator
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            const isAndroid = /Android/.test(navigator.userAgent);
+            const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+
+            // Already installed
+            if (isStandalone) {
+                alert('✅ App is already installed on your home screen!');
+                return;
+            }
+
+            // Show modal with visual instructions
+            const modal = document.getElementById('installModal');
+            const instructions = document.getElementById('installInstructions');
+            
+            let instructionsHTML = '';
+            
+            if (isIOS || isSafari) {
+                // iOS Safari - show animated visual guide
+                instructionsHTML = `
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <div style="font-size: 48px; animation: bounce 1s infinite;">⬇️</div>
+                        <p style="color: #667eea; font-weight: 600; margin-top: 8px;">Look at the bottom of your screen!</p>
+                    </div>
+                    <div class="install-step">
+                        <div class="install-step-number">1</div>
+                        <div class="install-step-text">Tap the <strong>Share button</strong> <span style="font-size: 20px;">⎙</span> at the bottom of Safari</div>
+                    </div>
+                    <div class="install-step">
+                        <div class="install-step-number">2</div>
+                        <div class="install-step-text">Scroll down and tap <strong>"Add to Home Screen"</strong> <span style="font-size: 18px;">➕</span></div>
+                    </div>
+                    <div class="install-step">
+                        <div class="install-step-number">3</div>
+                        <div class="install-step-text">Tap <strong>"Add"</strong> in the top right to confirm</div>
+                    </div>
+                    <div style="background: #f0f9ff; padding: 12px; border-radius: 8px; margin-top: 16px; border-left: 4px solid #667eea;">
+                        <p style="font-size: 13px; color: #1e40af; margin: 0;">💡 After installing, you can use this app offline without internet!</p>
+                    </div>
+                `;
+            } else if (isAndroid) {
+                // Android - show animated visual guide
+                instructionsHTML = `
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <div style="font-size: 48px; animation: bounce 1s infinite;">☝️</div>
+                        <p style="color: #667eea; font-weight: 600; margin-top: 8px;">Look at the top-right corner!</p>
+                    </div>
+                    <div class="install-step">
+                        <div class="install-step-number">1</div>
+                        <div class="install-step-text">Tap the <strong>menu button</strong> <span style="font-size: 20px;">⋮</span> in the top-right corner</div>
+                    </div>
+                    <div class="install-step">
+                        <div class="install-step-number">2</div>
+                        <div class="install-step-text">Look for <strong>"Add to Home screen"</strong> or <strong>"Install app"</strong> <span style="font-size: 18px;">📥</span></div>
+                    </div>
+                    <div class="install-step">
+                        <div class="install-step-number">3</div>
+                        <div class="install-step-text">Tap <strong>"Add"</strong> or <strong>"Install"</strong> to add to your home screen</div>
+                    </div>
+                    <div style="background: #f0f9ff; padding: 12px; border-radius: 8px; margin-top: 16px; border-left: 4px solid #667eea;">
+                        <p style="font-size: 13px; color: #1e40af; margin: 0;">💡 After installing, you can use this app offline without internet!</p>
+                    </div>
+                `;
+            } else {
+                // Desktop
+                instructionsHTML = `
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <div style="font-size: 48px;">💻</div>
+                        <p style="color: #667eea; font-weight: 600; margin-top: 8px;">Desktop Installation</p>
+                    </div>
+                    <div class="install-step">
+                        <div class="install-step-number">1</div>
+                        <div class="install-step-text">Look for the <strong>install icon</strong> <span style="font-size: 18px;">⊕</span> in your browser's address bar</div>
+                    </div>
+                    <div class="install-step">
+                        <div class="install-step-number">2</div>
+                        <div class="install-step-text">Click the icon and select <strong>"Install"</strong></div>
+                    </div>
+                    <div class="install-step">
+                        <div class="install-step-number">3</div>
+                        <div class="install-step-text">The app will be added to your desktop or applications</div>
+                    </div>
+                `;
+            }
+            
+            instructions.innerHTML = instructionsHTML;
+            modal.style.display = 'flex';
+
+            // For iOS, also vibrate to draw attention if supported
+            if (isIOS && navigator.vibrate) {
+                navigator.vibrate([100, 50, 100]);
+            }
+        }
+
+        function closeInstallModal() {
+            document.getElementById('installModal').style.display = 'none';
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('installModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeInstallModal();
+            }
+        });
+
         // Speak phrase (placeholder)
         function speakPhrase(phrase) {
             console.log('Speaking:', phrase);
+        }
+
+        // Register service worker for offline support
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('Service Worker registered'))
+                    .catch(err => console.log('Service Worker registration failed:', err));
+            });
         }
     </script>
 </body>
