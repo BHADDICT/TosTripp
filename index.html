@@ -301,6 +301,10 @@
     gap: 8px;
     margin-bottom: 8px;
 }
+/* =========================
+   LANGUAGE SWITCHER
+   ========================= */
+
 
 .chatbot-input {
     flex: 1;
@@ -506,6 +510,97 @@
         transform: translateY(0) scale(1);
     }
 }
+/* =========================
+   LANGUAGE SWITCHER (Scoped)
+   ========================= */
+.languages-wrapper {
+    position: relative;
+    display: inline-block;
+    user-select: none;
+}
+
+/* Button */
+.languages-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: white;
+    border: 1px solid #e5e7eb;
+    padding: 8px 14px;
+    border-radius: 999px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    color: #374151;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.languages-btn i {
+    font-size: 14px;
+    color: #2563eb;
+}
+
+.languages-btn:hover {
+    background: #eff6ff;
+    border-color: #93c5fd;
+}
+
+/* Dropdown menu */
+.languages-menu {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    background: white;
+    border-radius: 14px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    list-style: none;
+    padding: 8px;
+    min-width: 160px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-8px) scale(0.98);
+    transition: all 0.25s ease;
+    z-index: 1000;
+}
+
+/* Show menu */
+.languages-menu.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+}
+
+/* Menu items */
+.languages-menu li {
+    padding: 10px 14px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+}
+
+/* Hover & active */
+.languages-menu li:hover {
+    background: #2563eb;
+    color: white;
+}
+
+/* Mobile friendly */
+@media (max-width: 768px) {
+    .languages-btn {
+        padding: 6px 12px;
+        font-size: 13px;
+    }
+
+    .languages-menu {
+        min-width: 140px;
+    }
+}
 
 @media (max-width: 480px) {
     .chatbot-window {
@@ -702,18 +797,16 @@
   </ul>
 </nav>
 
-          <div class="language-wrapper">
-    <button class="language-btn" onclick="toggleLangMenu()">
-        <i class="fas fa-globe"></i>
-        <span id="currentLang">English</span>
-        <i class="fas fa-chevron-down"></i>
-    </button>
+<div class="language-wrapper">
+  <button class="languages-btn" id="currentLang" onclick="toggleLangMenu()">
+    English <i class="fa fa-caret-down"></i>
+  </button>
 
-    <ul class="language-menu" id="langMenu">
-        <li onclick="setLanguage('en','English')">English</li>
-        <li onclick="setLanguage('zh','中文')">中文</li>
-        <li onclick="setLanguage('km','ខ្មែរ')">ខ្មែរ</li>
-    </ul>
+  <ul class="languages-menu" id="langMenu">
+    <li onclick="setLanguage('en', 'English')">English</li>
+    <li onclick="setLanguage('fr', 'Français')">Français</li>
+    <li onclick="setLanguage('km', 'ខ្មែរ')">ខ្មែរ</li>
+  </ul>
 </div>
 
         </div>
@@ -741,15 +834,18 @@
 <!-- Techo International Airport Section -->
 <section class="airport-intro">
     <div class="airport-content">
-        <span class="airport-welcome">Welcome to</span>
+        <span class="airport-welcome" data-i18n="hero_offline">Welcome to</span>
         <h2>TosTrip</h2>
-        <p>Tostrip is a travel assistant platform designed to help travelers live like a local. It enables users to experience authentic local lifestyles, discover hidden gems, and navigate destinations with confidence through offline access for safety and convenience, combined with AI-powered planning that adapts to real local experiences.
+        <p data-i18n="about_text">
+            Tostrip is a travel assistant platform that helps travelers live like a local. It allows users to spend a day experiencing authentic local life, discover hidden gems, and explore destinations safely and conveniently with offline access. With unique “Rent a Friend” packages, travelers connect with locals for a truly immersive experience. Currently focused on Siem Reap, Tostrip turns every trip into an unforgettable local adventure.
         </p>
-        <a href="us.html" class="airport-link">
+
+        <a href="us.html" class="airport-link" data-i18n="hero_explore">
             Discover Our Story <span>➜</span>
         </a>
     </div>
 </section>
+
 <!-- Tour Packages Section -->
 <section class="tour-packages" id="packages">
     <div class="tour-header">
@@ -1290,7 +1386,7 @@ How can I help you today?</div>
         </div>
     </div>
 </div>
-
+<script src="translator.js"></script>
 <script src="chatbot.js"></script>
 <!-- EmailJS SDK -->
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>

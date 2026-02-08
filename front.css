@@ -112,25 +112,6 @@
             transform: translateY(-2px);
         }
 
-        .language-btn {
-            background: rgba(255,255,255,0.2);
-            border: none;
-          background: var(--primary-gradient);
-            padding: 0.6rem 1.2rem;
-            border-radius: 30px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            transition: var(--transition);
-            font-weight: 500;
-        }
-
-        .language-btn:hover {
-            background: rgba(255,255,255,0.3);
-            transform: scale(1.05);
-        }
-
         /* ===== HERO SECTION ===== */
         .hero {
             height: 100vh;
