@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tonlé Sap Floating Village</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+.map {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  color: white;
+  background: linear-gradient(160deg, #0c1e2e 0%, #051421 40%, #020817 100%);
+}
+
+.map::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(-55deg, transparent 0px, rgba(125,211,252,.08) 2px, transparent 4px, transparent 10px);
+  animation: shimmer 8s linear infinite;
+  pointer-events: none;
+  opacity: .6;
+}
+
+@keyframes shimmer {
+  from { transform: translateX(-20px) translateY(-20px); }
+  to { transform: translateX(20px) translateY(20px); }
+}
+
+/* HEADER */
+.header { 
+  position: absolute; 
+  top: 20px; 
+  left: 20px; 
+  z-index: 10; 
+  background: rgba(17,24,39,.9);
+  padding: 15px 20px;
+  border-radius: 12px;
+}
+.header h2 { font-size: 20px; margin-bottom: 5px; }
+.header p { font-size: 12px; opacity: .85; }
+
+/* PANELS */
+.panel { 
+  position: absolute; 
+  background: rgba(17,24,39,.95); 
+  border-radius: 14px; 
+  padding: 16px; 
+  font-size: 13px; 
+  box-shadow: 0 10px 30px rgba(0,0,0,.5); 
+}
+.info { top: 120px; right: 20px; width: 240px; z-index: 10; }
+.timeline { top: 120px; left: 20px; width: 280px; max-height: 70vh; overflow-y: auto; z-index: 10; }
+
+/* TIMELINE */
+.timeline h3 { margin-bottom: 12px; font-size: 14px; }
+.timeline-item { 
+  padding: 10px 12px; 
+  margin-bottom: 8px; 
+  border-radius: 10px; 
+  cursor: pointer; 
+  background: #1f2937;
+  transition: all .3s ease;
+}
+.timeline-item:hover { background: #374151; transform: translateX(5px); }
+.timeline-item b { display: block; margin-bottom: 4px; }
+
+/* MARKERS */
+.marker {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  text-align: center;
+  z-index: 5;
+}
+
+.marker .icon {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #3b82f6, #6366f1);
+  box-shadow: 
+    0 10px 30px rgba(0,0,0,.5),
+    0 0 0 3px rgba(255,255,255,.15);
+  transition: all .3s ease;
+  position: relative;
+  overflow: visible;
+}
+
+/* RADAR PULSE EFFECT */
+.marker .icon::before,
+.marker .icon::after {
+  content: '';
+  position: absolute;
+  inset: -10px;
+  border-radius: 50%;
+  border: 2px solid #facc15;
+  opacity: 0;
+  animation: radar-pulse 2s infinite;
+}
+
+.marker .icon::after {
+  animation-delay: 1s;
+}
+
+@keyframes radar-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+.marker .icon img {
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+  transition: transform .3s ease;
+}
+
+.marker .number-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  width: 26px;
+  height: 26px;
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 12px;
+  color: #111;
+  box-shadow: 
+    0 3px 8px rgba(251, 191, 36, .5),
+    0 0 15px rgba(251, 191, 36, .4);
+  border: 2px solid white;
+  z-index: 3;
+  animation: badge-glow 2s infinite;
+}
+
+@keyframes badge-glow {
+  0%, 100% {
+    box-shadow: 
+      0 3px 8px rgba(251, 191, 36, .5),
+      0 0 15px rgba(251, 191, 36, .4);
+  }
+  50% {
+    box-shadow: 
+      0 3px 8px rgba(251, 191, 36, .7),
+      0 0 25px rgba(251, 191, 36, .6);
+  }
+}
+
+.marker:hover .icon {
+  transform: scale(1.1);
+  box-shadow: 
+    0 15px 40px rgba(0,0,0,.6),
+    0 0 30px rgba(250, 204, 21, .6);
+}
+
+.marker:hover .icon img {
+  transform: scale(1.1);
+}
+
+.tooltip { 
+  position: absolute; 
+  bottom: 100px; 
+  left: 50%; 
+  transform: translateX(-50%); 
+  background: rgba(17,24,39,.95); 
+  padding: 10px 14px; 
+  border-radius: 10px; 
+  font-size: 11px; 
+  width: 200px; 
+  opacity: 0; 
+  pointer-events: none; 
+  transition: opacity .3s ease; 
+  box-shadow: 0 5px 20px rgba(0,0,0,.4); 
+  border: 1px solid rgba(255,255,255,.1); 
+  z-index: 10;
+}
+.marker:hover .tooltip { opacity: 1; }
+
+.label { 
+  margin-top: 8px; 
+  font-size: 11px; 
+  background: rgba(17,24,39,.9); 
+  padding: 5px 10px; 
+  border-radius: 8px; 
+  white-space: nowrap;
+}
+
+/* EMERGENCY PANEL */
+.emergency-panel { 
+  position: absolute; 
+  bottom: 20px; 
+  left: 20px; 
+  background: rgba(127,29,29,.95); 
+  padding: 14px; 
+  border-radius: 14px; 
+  width: 260px; 
+  box-shadow: 0 10px 30px rgba(0,0,0,.6);
+  z-index: 10;
+}
+.emergency-panel h4 { margin: 0 0 10px; font-size: 13px; }
+.emergency-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.emergency-btn { 
+  padding: 10px; 
+  border-radius: 10px; 
+  border: none; 
+  font-size: 11px; 
+  cursor: pointer; 
+  font-weight: bold;
+  transition: opacity .3s ease;
+}
+.send { grid-column: span 2; background: linear-gradient(to right, #facc15, #f59e0b); color: #111; }
+.telegram { background: #0088cc; color: white; }
+.call { background: #ef4444; color: white; }
+.trusted { background: #22c55e; color: white; }
+.embassy { grid-column: span 2; background: #1f2937; color: white; }
+.emergency-btn:hover { opacity: .85; }
+
+/* MODAL */
+.modal { 
+  position: fixed; 
+  inset: 0; 
+  background: rgba(0,0,0,.8); 
+  display: none; 
+  align-items: center; 
+  justify-content: center; 
+  z-index: 100; 
+}
+.modal-content { 
+  background: #111827; 
+  max-width: 600px; 
+  width: 90%; 
+  border-radius: 20px; 
+  overflow: hidden; 
+}
+.modal-header { 
+  padding: 20px; 
+  background: linear-gradient(to right, #7c3aed, #4f46e5); 
+}
+.modal-header h2 { margin-bottom: 5px; }
+.modal-body { padding: 20px; }
+.close { 
+  float: right; 
+  cursor: pointer; 
+  font-size: 24px; 
+  line-height: 1; 
+  opacity: .8;
+  transition: opacity .3s ease;
+}
+.close:hover { opacity: 1; }
+
+.map-preview { 
+  width: 100%; 
+  height: 220px; 
+  border-radius: 12px; 
+  overflow: hidden; 
+  margin-top: 12px; 
+  border: 2px solid #374151; 
+}
+
+.secondary-btn { 
+  width: 100%; 
+  margin-top: 12px; 
+  padding: 12px; 
+  border-radius: 12px; 
+  background: #1f2937; 
+  color: white; 
+  font-weight: bold; 
+  border: 1px solid #374151; 
+  cursor: pointer;
+  transition: background .3s ease;
+}
+.secondary-btn:hover { background: #374151; }
+
+.footer { 
+  position: absolute; 
+  bottom: 20px; 
+  right: 20px; 
+  padding: 10px 15px; 
+  border-radius: 10px; 
+  font-size: 11px; 
+  background: rgba(17,24,39,.9);
+  z-index: 10;
+}
+</style>
+</head>
+<body>
+
+<div class="map">
+
+  <div class="header">
+    <h2>🌊 E NOI ACTIVITIES</h2>
+    <p>Life on the Water – One Day Journey</p>
+  </div>
+
+  <div class="panel info">
+    <b>Journey Info</b><br><br>
+    ⏰ 6:00 AM – 7:00 PM<br>
+    📍 Tonlé Sap Lake
+  </div>
+
+  <div class="panel timeline">
+    <h3>📅 Daily Schedule</h3>
+    <div id="timeline"></div>
+  </div>
+  
+  <!-- SVG for connecting lines -->
+  <svg style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:2;">
+    <defs>
+      <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+        <polygon points="0 0, 10 3, 0 6" fill="#facc15">
+          <animate attributeName="fill" values="#facc15;#fde047;#facc15" dur="1.5s" repeatCount="indefinite" />
+        </polygon>
+      </marker>
+      
+      <filter id="glow">
+        <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+        <feMerge>
+          <feMergeNode in="coloredBlur"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
+      
+      <linearGradient id="lineGradient">
+        <stop offset="0%" style="stop-color:#facc15;stop-opacity:0.8">
+          <animate attributeName="stop-opacity" values="0.6;1;0.6" dur="2s" repeatCount="indefinite" />
+        </stop>
+        <stop offset="50%" style="stop-color:#fde047;stop-opacity:1" />
+        <stop offset="100%" style="stop-color:#facc15;stop-opacity:0.8">
+          <animate attributeName="stop-opacity" values="0.6;1;0.6" dur="2s" repeatCount="indefinite" begin="1s" />
+        </stop>
+      </linearGradient>
+    </defs>
+    <g id="pathLines"></g>
+  </svg>
+  
+  <div id="markers"></div>
+
+  <!-- MODAL -->
+  <div class="modal" id="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <span class="close" onclick="closeModal()">✕</span>
+        <h2 id="modalTitle"></h2>
+        <p id="modalTime"></p>
+      </div>
+      <div class="modal-body">
+        <p id="modalDesc"></p>
+        <div class="map-preview">
+          <iframe id="mapFrame" width="100%" height="100%" style="border:0"></iframe>
+        </div>
+        <button class="secondary-btn" id="fullMapBtn">📍 View Full Map</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="emergency-panel">
+    <h4>🚨 Emergency Help</h4>
+    <div class="emergency-actions">
+      <button class="emergency-btn send" onclick="sendLocationSMS()">📍 Send My Location (SMS)</button>
+      <button class="emergency-btn telegram" onclick="sendLocationTelegram()">📲 Send via Telegram</button>
+      <button class="emergency-btn call" onclick="callPolice()">☎️ Police</button>
+      <button class="emergency-btn trusted" onclick="callTrusted()">👤 Trusted Call</button>
+      <button class="emergency-btn embassy" onclick="callEmbassy()">🏛 Local Ambassdor</button>
+    </div>
+  </div>
+
+  <div class="footer">🌤️ Bring sun protection</div>
+
+</div>
+
+<script>
+let userLocation = null;
+const TRUSTED_NUMBER = "0716145925";
+
+/* ---------- ACTIVITIES ---------- */
+const activities = [
+  { name:"Early Morning Fishing", time:"6:00–8:00 AM", icon:"./imgg/enoihouse.png", coords:"12.9167,104.0500", pos:{top:"20%", left:"25%"}, desc:"Join local fishermen", number:1 },
+  { name:"Lake Ecology Tour", time:"8:30–10:00 AM", icon:"./imgg/fish.png", coords:"12.9180,104.0520", pos:{top:"15%", left:"50%"}, desc:"Discover biodiversity", number:2 },
+  { name:"Fish Amok Cooking", time:"10:30–12:30 PM", icon:"./imgg/amok.png", coords:"12.9200,104.0510", pos:{top:"20%", right:"25%"}, desc:"Cook with families", number:3 },
+  { name:"Palm Sugar Workshop", time:"1:00–3:00 PM", icon:"./imgg/palm.png", coords:"12.9175,104.0505", pos:{top:"50%", right:"18%"}, desc:"Palm sugar making", number:4 },
+  { name:"Village Home Visit", time:"3:30–5:00 PM", icon:"./imgg/noi.png", coords:"12.9195,104.0485", pos:{bottom:"20%", right:"35%"}, desc:"Explore floating homes", number:5 },
+  { name:"Floating Market", time:"5:30–7:00 PM", icon:"./imgg/shopping.png", coords:"12.9185,104.0495", pos:{bottom:"20%", left:"25%"}, desc:"Boat trading experience", number:6 }
+];
+
+/* ---------- GPS ---------- */
+if (navigator.geolocation) {
+  navigator.geolocation.getCurrentPosition(
+    pos => { userLocation = { lat: pos.coords.latitude, lon: pos.coords.longitude }; render(); },
+    () => render()
+  );
+} else { render(); }
+
+/* ---------- DISTANCE ---------- */
+function calculateDistance(coords) {
+  if (!userLocation) return "";
+  const [lat2, lon2] = coords.split(",").map(Number);
+  const R = 6371;
+  const dLat = (lat2 - userLocation.lat) * Math.PI / 180;
+  const dLon = (lon2 - userLocation.lon) * Math.PI / 180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(userLocation.lat*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  const d = R * c;
+  return d < 1 ? Math.round(d*1000)+" m" : d.toFixed(1)+" km";
+}
+
+/* ---------- RENDER ---------- */
+function render() {
+  const timeline = document.getElementById("timeline");
+  const markers = document.getElementById("markers");
+  const pathLines = document.getElementById("pathLines");
+  timeline.innerHTML = "";
+  markers.innerHTML = "";
+  pathLines.innerHTML = "";
+
+  const positions = [];
+
+  activities.forEach(a => {
+    const dist = calculateDistance(a.coords);
+
+    const t = document.createElement("div");
+    t.className = "timeline-item";
+    t.innerHTML = `<b>${a.number}. ${a.name}</b>${a.time}`;
+    timeline.appendChild(t);
+
+    const m = document.createElement("div");
+    m.className = "marker";
+    Object.assign(m.style, a.pos);
+    m.innerHTML = `
+      <div class="tooltip">
+        <b>${a.name}</b><br>
+        ${a.desc}<br>
+        ${dist ? `<span style="color:#facc15;">📍 ${dist}</span>` : ''}
+      </div>
+      <div class="icon">
+        <img src="${a.icon}">
+        <div class="number-badge">${a.number}</div>
+      </div>
+      <div class="label">${a.name}</div>
+    `;
+    m.onclick = () => openModal(a);
+    markers.appendChild(m);
+
+    const rect = getPositionFromStyle(a.pos);
+    positions.push(rect);
+  });
+
+  // Draw connecting lines
+  for(let i = 0; i < positions.length; i++){
+    const nextIndex = (i + 1) % positions.length;
+    const x1 = positions[i].x;
+    const y1 = positions[i].y;
+    const x2 = positions[nextIndex].x;
+    const y2 = positions[nextIndex].y;
+    
+    const angle = Math.atan2(y2 - y1, x2 - x1);
+    const iconRadius = 45;
+    
+    const startX = x1 + Math.cos(angle) * iconRadius;
+    const startY = y1 + Math.sin(angle) * iconRadius;
+    const endX = x2 - Math.cos(angle) * iconRadius;
+    const endY = y2 - Math.sin(angle) * iconRadius;
+    
+    const distance = Math.sqrt((endX-startX)**2 + (endY-startY)**2);
+    const midX = (startX + endX) / 2;
+    const midY = (startY + endY) / 2;
+    const dx = endX - startX;
+    const dy = endY - startY;
+    
+    const curveFactor = Math.min(distance / 10, 40);
+    const controlX = midX - dy * curveFactor / 100;
+    const controlY = midY + dx * curveFactor / 100;
+    
+    // Glow layer with pulsing effect
+    const glowLine = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    glowLine.setAttribute("d", `M ${startX} ${startY} Q ${controlX} ${controlY} ${endX} ${endY}`);
+    glowLine.setAttribute("stroke", "#fbbf24");
+    glowLine.setAttribute("stroke-width", "8");
+    glowLine.setAttribute("fill", "none");
+    glowLine.setAttribute("opacity", "0.3");
+    glowLine.setAttribute("filter", "url(#glow)");
+    pathLines.appendChild(glowLine);
+    
+    // Add pulsing animation to glow
+    const glowAnimate = document.createElementNS("http://www.w3.org/2000/svg", "animate");
+    glowAnimate.setAttribute("attributeName", "opacity");
+    glowAnimate.setAttribute("values", "0.2;0.4;0.2");
+    glowAnimate.setAttribute("dur", "2s");
+    glowAnimate.setAttribute("repeatCount", "indefinite");
+    glowLine.appendChild(glowAnimate);
+    
+    // Main line with gradient
+    const line = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    line.setAttribute("d", `M ${startX} ${startY} Q ${controlX} ${controlY} ${endX} ${endY}`);
+    line.setAttribute("stroke", "url(#lineGradient)");
+    line.setAttribute("stroke-width", "4");
+    line.setAttribute("stroke-dasharray", "10,6");
+    line.setAttribute("fill", "none");
+    line.setAttribute("opacity", "0.8");
+    line.setAttribute("marker-end", "url(#arrowhead)");
+    line.setAttribute("stroke-linecap", "round");
+    pathLines.appendChild(line);
+    
+    // Animated dot with glow
+    const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    dot.setAttribute("r", "5");
+    dot.setAttribute("fill", "#fde047");
+    dot.setAttribute("opacity", "0.95");
+    dot.setAttribute("filter", "url(#glow)");
+    
+    const animateMotion = document.createElementNS("http://www.w3.org/2000/svg", "animateMotion");
+    animateMotion.setAttribute("dur", "4s");
+    animateMotion.setAttribute("repeatCount", "indefinite");
+    animateMotion.setAttribute("begin", `${i * 0.6}s`);
+    animateMotion.setAttribute("path", `M ${startX} ${startY} Q ${controlX} ${controlY} ${endX} ${endY}`);
+    
+    dot.appendChild(animateMotion);
+    pathLines.appendChild(dot);
+  }
+}
+
+/* ---------- HELPER ---------- */
+function getPositionFromStyle(pos){
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  
+  let x = vw / 2;
+  let y = vh / 2;
+  
+  if(pos.left) x = parseFloat(pos.left) * vw / 100;
+  if(pos.right) x = vw - (parseFloat(pos.right) * vw / 100);
+  if(pos.top) y = parseFloat(pos.top) * vh / 100;
+  if(pos.bottom) y = vh - (parseFloat(pos.bottom) * vh / 100);
+  
+  return {x, y};
+}
+
+/* ---------- MODAL ---------- */
+function openModal(a){
+  const modal = document.getElementById("modal");
+  modal.style.display = "flex";
+  document.getElementById("modalTitle").innerText = a.name;
+  document.getElementById("modalTime").innerText = a.time;
+  document.getElementById("modalDesc").innerText = a.desc;
+  document.getElementById("mapFrame").src = `https://www.google.com/maps?q=${a.coords}&z=15&output=embed`;
+  document.getElementById("fullMapBtn").onclick = () => window.open(`https://www.google.com/maps/search/?api=1&query=${a.coords}`);
+}
+function closeModal(){ 
+  document.getElementById("modal").style.display = "none"; 
+}
+
+/* ---------- SOS ---------- */
+function sendLocationSMS(){
+  if(!userLocation){ alert("Location not available yet"); return; }
+  const msg = encodeURIComponent(`🚨 I need help.\nMy location: https://maps.google.com/?q=${userLocation.lat},${userLocation.lon}`);
+  window.location.href = `sms:${TRUSTED_NUMBER}?body=${msg}`;
+}
+function sendLocationTelegram(){
+  if(!userLocation){ alert("Location not available yet"); return; }
+  const msg = encodeURIComponent(`🚨 I need help.\nMy location: https://maps.google.com/?q=${userLocation.lat},${userLocation.lon}`);
+  window.open(`https://t.me/${TRUSTED_NUMBER}?text=${msg}`, "_blank");
+}
+function callPolice(){ window.location.href = "tel:117"; }
+function callTrusted(){ window.location.href = `tel:${TRUSTED_NUMBER}`; }
+function callEmbassy(){ alert("Replace with your embassy phone number"); }
+
+render();
+</script>
+
+</body>
+</html>

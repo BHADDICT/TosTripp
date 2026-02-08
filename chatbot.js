@@ -100,6 +100,7 @@ Please contact your <b>${userCountry} Embassy</b> immediately.<br><br>
 • Police report<br>
 • Passport copy (if any)<br>
 • National ID<br><br>
+
 If you need help finding a police station, just tell me.
         `;
 
@@ -138,6 +139,44 @@ I can help you find your embassy.<br><br>
     }
 
     // ==============================
+    // HALAL FOOD
+    // ==============================
+    else if (
+        msg.includes("halal") ||
+        msg.includes("halal food") ||
+        msg.includes("muslim food")
+    ) {
+        reply = `
+🍽️ <strong>Halal Food in Cambodia</strong><br><br>
+• Halal restaurants in Phnom Penh & Siem Reap<br>
+• Muslim-owned eateries<br>
+• Middle Eastern & Malay cuisine<br>
+• Seafood & grilled chicken<br><br>
+
+📍 Want halal food near you? Tell me your location.
+        `;
+    }
+
+    // ==============================
+    // VEGETARIAN FOOD
+    // ==============================
+    else if (
+        msg.includes("vegetarian") ||
+        msg.includes("vegan") ||
+        msg.includes("no meat")
+    ) {
+        reply = `
+🥗 <strong>Vegetarian & Vegan Food</strong><br><br>
+• Vegetarian Khmer dishes<br>
+• Vegan cafés in city areas<br>
+• Fresh vegetable stir-fries<br>
+• Tofu & mushroom meals<br><br>
+
+🌱 Tell me where you are and I’ll suggest places.
+        `;
+    }
+
+    // ==============================
     // DESTINATIONS
     // ==============================
     else if (msg.includes("destination")) {
@@ -158,7 +197,7 @@ I can help you find your embassy.<br><br>
 🎒 <strong>Tour Packages</strong><br>
 • City Tour (1 Day)<br>
 • Temple Tour (2 Days)<br>
-• Adventure Trip<br>
+• Adventure Trip<br><br>
 Contact us for prices 😊
         `;
     }
@@ -168,10 +207,17 @@ Contact us for prices 😊
     // ==============================
     else if (msg.includes("contact")) {
         reply = `
-📞 <strong>Contact Info</strong><br>
-• Phone: +855 12 345 678<br>
-• Email: support@tostrip.com<br>
-• Instagram: @tostrip
+📞 <strong>Contact ToStrip</strong><br><br>
+
+📧 Email: <b>Tostrip123@gmail.com</b><br>
+📱 Phone: <b>071 614 5925</b><br><br>
+
+🌐 Follow us on social media:<br>
+• Instagram: <b>@tostrip123</b><br>
+• Facebook: <b>ToStrip</b><br>
+• TikTok: <b>@tostrip123</b><br><br>
+
+We’re happy to help anytime 😊
         `;
     }
 
@@ -185,6 +231,8 @@ function quickAction(type) {
     if (type === "emergency") botReply("emergency");
     if (type === "destinations") botReply("destination");
     if (type === "packages") botReply("tour packages");
+    if (type === "halal") botReply("halal food");
+    if (type === "vegetarian") botReply("vegetarian food");
     if (type === "contact") botReply("contact");
 }
 
