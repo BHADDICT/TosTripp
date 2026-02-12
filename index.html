@@ -484,6 +484,38 @@
         transparent
     );
 }
+/* Extra text hidden by default */
+.extra-text {
+  display: none;
+  margin-top: 15px;
+  padding: 15px;
+  background-color: #f5f5f5;
+  border-left: 4px solid #4CAF50;
+  border-radius: 5px;
+  animation: fadeIn 0.3s ease;
+}
+
+.extra-text p {
+  margin: 0 0 10px 0;
+}
+
+.close-btn {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.close-btn:hover {
+  background-color: #45a049;
+}
+
+@keyframes fadeIn {
+  from {opacity: 0;}
+  to {opacity: 1;}
+}
 
 .tour-overlay h3 {
     color: #ffffff;
@@ -589,6 +621,127 @@
     background: #2563eb;
     color: white;
 }
+/* ---------- Base styles (keep your desktop CSS untouched) ---------- */
+.header {
+  background-color: #4CAF50; /* nice green */
+  padding: 10px 20px;
+  color: white;
+  position: relative;
+}
+
+.nav-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo span {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+/* Navigation menu desktop */
+.nav-menu {
+  display: flex;
+  list-style: none;
+  gap: 20px;
+}
+
+.nav-link {
+  color: white;
+  text-decoration: none;
+}
+
+/* Language wrapper */
+.language-wrapper {
+  position: relative;
+}
+
+.languages-btn {
+  background: transparent;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.languages-menu {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 100%;
+  background-color: #b7c2b8;
+  list-style: none;
+  padding: 10px 0;
+  margin: 0;
+  border-radius: 5px;
+}
+
+.languages-menu li {
+  padding: 5px 20px;
+  cursor: pointer;
+}
+
+.languages-menu li:hover {
+  background-color: #9caa9d;
+}
+
+/* ---------- Mobile styles ---------- */
+@media screen and (max-width: 768px) {
+  .nav-menu {
+    position: absolute;
+    top: 60px;
+    left: 0;
+    right: 0;
+    background-color: #b7c5b8;
+    flex-direction: column;
+    align-items: center;
+    display: none; /* hidden by default */
+    gap: 15px;
+    padding: 10px 0;
+    z-index: 1000;
+  }
+
+  .nav-menu.active {
+    display: flex;
+  }
+
+  /* Header layout on mobile */
+  .nav-container {
+    justify-content: space-between;
+    position: relative;
+  }
+
+  .logo {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  /* Hamburger */
+  .hamburger {
+    font-size: 24px;
+    cursor: pointer;
+    background: none;
+    border: none;
+    color: white;
+    z-index: 1100;
+  }
+
+  .hamburger.active::before {
+    content: "\2715"; /* X symbol */
+  }
+
+  .hamburger::before {
+    content: "\2630"; /* Hamburger symbol */
+  }
+
+  /* Move languages to right */
+  .language-wrapper {
+    position: relative;
+  }
+}
+
 
 /* Mobile friendly */
 @media (max-width: 768px) {
@@ -774,42 +927,35 @@
 </head>
 <body>
     <!-- Header -->
-    <header class="header" id="header">
-        <div class="nav-container">
-            <div class="logo">
-                <span>TosTrip</span>
-            </div>
-        <nav>
-  <ul class="nav-menu">
-    <li>
-      <a href="#home" class="nav-link" data-i18n="nav_home">Home</a>
-    </li>
+ <header class="header" id="header">
+  <div class="nav-container">
+    <!-- Hamburger for mobile -->
+    <button class="hamburger" id="hamburger"></button>
 
-    <li>
-      <a href="#destinations" class="nav-link" data-i18n="nav_destinations">Destinations</a>
-    </li>
-    <li>
-      <a href="us.html" class="nav-link" data-i18n="nav_contact">
-        Contact
-      </a>
-    </li>
-  </ul>
-</nav>
+    <div class="logo">
+      <span>TosTrip</span>
+    </div>
 
-<div class="language-wrapper">
-  <button class="languages-btn" id="currentLang" onclick="toggleLangMenu()">
-    English <i class="fa fa-caret-down"></i>
-  </button>
+    <nav>
+      <ul class="nav-menu" id="navMenu">
+        <li><a href="#home" class="nav-link" data-i18n="nav_home">Home</a></li>
+        <li><a href="#destinations" class="nav-link" data-i18n="nav_destinations">Destinations</a></li>
+        <li><a href="us.html" class="nav-link" data-i18n="nav_contact">Contact</a></li>
+      </ul>
+    </nav>
 
-  <ul class="languages-menu" id="langMenu">
-    <li onclick="setLanguage('en', 'English')">English</li>
-    <li onclick="setLanguage('fr', 'Français')">Français</li>
-    <li onclick="setLanguage('km', 'ខ្មែរ')">ខ្មែរ</li>
-  </ul>
-</div>
-
-        </div>
-    </header>
+    <div class="language-wrapper">
+      <button class="languages-btn" id="currentLang" onclick="toggleLangMenu()">
+        English <i class="fa fa-caret-down"></i>
+      </button>
+      <ul class="languages-menu" id="langMenu">
+        <li onclick="setLanguage('en', 'English')">English</li>
+        <li onclick="setLanguage('fr', 'Français')">Français</li>
+        <li onclick="setLanguage('km', 'ខ្មែរ')">ខ្មែរ</li>
+      </ul>
+    </div>
+  </div>
+</header>
 
    
     <section id="home" class="hero">
@@ -818,7 +964,7 @@
 <p data-i18n="hero_subtitle">Travel Safer, Travel Smarter with TosTrip</p>
 
 <a href="#packages" class="cta-btn primary">
-    <span data-i18n="hero_explore">About us</span>
+    <span data-i18n="hero_explore">Explore tours</span>
     <i class="fas fa-arrow-right"></i>
 </a>
 
@@ -1237,13 +1383,23 @@
 
      <!-- Destinations Section -->
     <div class="destinations-section" id="destinations">
-        <div class="section-header">
-            <div>
-                <h2>Live like a local</h2>
-                <p>Go beyond sightseeing. Discover destinations worth settling into.</p>
-            </div>
-            <button class="view-more-btn">View More</button>
-        </div>
+      <div class="section-header">
+  <div>
+    <h2>Live like a local</h2>
+    <p>Go beyond sightseeing. Discover destinations worth settling into.</p>
+  </div>
+  <button class="view-more-btn" id="viewMoreBtn">View More</button>
+</div>
+
+<!-- Hidden extra text -->
+<div class="extra-text" id="extraText">
+  <p>
+    "Live like a local" means immersing yourself in the culture, cuisine, and daily life of the destination. 
+    Experience neighborhoods, try authentic foods, connect with locals, and explore hidden gems beyond typical tourist spots.
+  </p>
+  <button class="close-btn" id="closeBtn">Close</button>
+</div>
+
 
         <div class="carousel-container">
             <div class="carousel-track">
@@ -1387,6 +1543,28 @@ How can I help you today?</div>
 <script src="translator.js"></script>
 <script src="chatbot.js"></script>
 <!-- EmailJS SDK -->
+ <script>
+    // Toggle hamburger menu
+const hamburger = document.getElementById("hamburger");
+const navMenu = document.getElementById("navMenu");
+
+hamburger.addEventListener("click", () => {
+  navMenu.classList.toggle("active");
+  hamburger.classList.toggle("active");
+});
+
+// Toggle language menu
+function toggleLangMenu() {
+  const langMenu = document.getElementById("langMenu");
+  langMenu.style.display = langMenu.style.display === "block" ? "none" : "block";
+}
+
+function setLanguage(code, name) {
+  document.getElementById("currentLang").innerHTML = name + ' <i class="fa fa-caret-down"></i>';
+  document.getElementById("langMenu").style.display = "none";
+  // Add your translation logic here
+}
+</script>
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 
 <script>
@@ -1612,6 +1790,19 @@ How can I help you today?</div>
       }
   });
 </script>
+<script>const viewMoreBtn = document.getElementById("viewMoreBtn");
+const extraText = document.getElementById("extraText");
+const closeBtn = document.getElementById("closeBtn");
 
+viewMoreBtn.addEventListener("click", () => {
+  extraText.style.display = "block";
+  viewMoreBtn.style.display = "none"; // hide the View More button
+});
+
+closeBtn.addEventListener("click", () => {
+  extraText.style.display = "none";
+  viewMoreBtn.style.display = "inline-block"; // show the View More button again
+});
+</script>
 </body>
 </html>
